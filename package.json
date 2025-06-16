@@ -1,0 +1,49 @@
+{
+  "name": "chat",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "eslint .",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@cloudinary/react": "^1.14.3",
+    "@cloudinary/url-gen": "^1.21.0",
+    "@craco/craco": "^7.1.0",
+    "@types/react-icons": "^2.2.7",
+    "axios": "^1.9.0",
+    "bootstrap": "^5.3.6",
+    "date-fns": "^4.1.0",
+    "firebase": "^11.8.1",
+    "framer-motion": "^12.17.0",
+    "jquerry": "^0.0.1-security",
+    "jquery": "^3.7.1",
+    "prop-types": "^15.8.1",
+    "react": "^18.0.0",
+    "react-avatar": "^5.0.3",
+    "react-bootstrap": "^2.10.10",
+    "react-dom": "^18.0.0",
+    "react-icons": "^5.5.0",
+    "react-quill": "^2.0.0",
+    "react-router-dom": "^7.6.1",
+    "react-spinners": "^0.17.0",
+    "react-toastify": "^11.0.5"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.25.0",
+    "@types/react": "^18.0.0",
+    "@types/react-dom": "^18.0.0",
+    "@vitejs/plugin-react": "^4.4.1",
+    "autoprefixer": "^9.8.8",
+    "eslint": "^9.25.0",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-refresh": "^0.4.19",
+    "globals": "^16.0.0",
+    "postcss": "^7.0.39",
+    "tailwindcss": "npm:@tailwindcss/postcss7-compat@^2.2.17",
+    "vite": "^6.3.5"
+  }
+}
