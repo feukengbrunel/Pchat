@@ -6,6 +6,7 @@ import { Image } from 'react-bootstrap';
 import { useAuth } from '../hooks/useAuth';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
+import Avatar from 'react-avatar';
 
 const MAX_IMAGES = 4;
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
@@ -18,9 +19,9 @@ const CreatePost = ({ onPost }) => {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState(null);
   const fileInputRef = useRef(null);
-   const { logout, currentUser } = useAuth();
-const [userData, setUserData] = useState(null);
-// Récupération des infos utilisateur
+  const { logout, currentUser } = useAuth();
+  const [userData, setUserData] = useState(null);
+  // Récupération des infos utilisateur
   useEffect(() => {
     const fetchUserData = async () => {
       if (currentUser?.uid) {
@@ -40,7 +41,7 @@ const [userData, setUserData] = useState(null);
   const modules = {
     toolbar: [
       ['bold', 'italic', 'underline'],
-      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+      [{ 'list': 'ordered' }, { 'list': 'bullet' }],
       ['link'],
       [{ 'color': [] }],
       ['clean']
@@ -56,7 +57,7 @@ const [userData, setUserData] = useState(null);
 
   const handleImageUpload = async (e) => {
     const files = Array.from(e.target.files);
-    
+
     // Vérifications
     if (files.length === 0) return;
     if (images.length + files.length > MAX_IMAGES) {
@@ -83,7 +84,7 @@ const [userData, setUserData] = useState(null);
           formData.append('file', file);
           formData.append('upload_preset', 'EchatApp');
           formData.append('public_id', fileName);
-          
+
           const response = await fetch(
             `https://api.cloudinary.com/v1_1/dmz5oxfks/image/upload`,
             {
@@ -91,11 +92,11 @@ const [userData, setUserData] = useState(null);
               body: formData,
             }
           );
-          
+
           if (!response.ok) {
             throw new Error('Échec du téléchargement');
           }
-          
+
           const data = await response.json();
           return {
             url: data.secure_url,
@@ -105,7 +106,7 @@ const [userData, setUserData] = useState(null);
           };
         })
       );
-      
+
       setImages([...images, ...uploadedImages]);
     } catch (error) {
       console.error("Erreur lors de l'upload:", error);
@@ -126,13 +127,13 @@ const [userData, setUserData] = useState(null);
       setError("Veuillez ajouter du texte ou des images");
       return;
     }
-    
+
     try {
       await onPost({
         content: content.trim(),
         images: images.map(img => img.url)
       });
-      
+
       // Réinitialiser après succès
       setContent('');
       setImages([]);
@@ -153,12 +154,22 @@ const [userData, setUserData] = useState(null);
       <div className="card-body p-3">
         <form onSubmit={handleSubmit}>
           <div className="d-flex align-items-center mb-2">
-            <div className="avatar avatar-image me-2" style={{ width: "40px", height: "40px" }}>
-              <img
-                src={userData?.photoURL || "/assets/images/avatars/thumb-3.jpg"}
-  alt="Avatar"
-  className="avatar-img rounded-circle"
-              />
+            <div className="avatar avatar-image mr-2" style={{ width: "40px", height: "40px" }}>
+              {userData?.photoURL ? (
+                <img
+                  src={userData?.photoURL || "/assets/images/avatars/thumb-3.jpg"}
+                  alt="Avatar"
+                  className="avatar-img rounded-circle"
+                />
+              ) :
+                (
+                  <Avatar
+                    name={userData?.username || userData?.displayName || currentUser?.displayName || currentUser?.email || "Utilisateur"}
+                    size="36"
+                    round
+                    className="border"
+                  />
+                )}
             </div>
             <button
               type="button"
@@ -166,7 +177,7 @@ const [userData, setUserData] = useState(null);
               onClick={() => setIsExpanded(true)}
               style={{ height: '40px', cursor: 'pointer' }}
             >
-              Quoi de neuf ? {userData?.username||userData?.displayName || userData?.email||'Utilisateur'}
+              Quoi de neuf ? {userData?.username || userData?.displayName || userData?.email || 'Utilisateur'}
             </button>
           </div>
 
@@ -181,14 +192,14 @@ const [userData, setUserData] = useState(null);
                   modules={modules}
                   formats={formats}
                   placeholder="Exprimez-vous..."
-                  style={{ 
+                  style={{
                     minHeight: '120px',
                     border: 'none',
                     fontFamily: 'inherit'
                   }}
                 />
               </div>
-              
+
               {/* Prévisualisation des images */}
               {images.length > 0 && (
                 <div className="mb-3">
@@ -221,7 +232,7 @@ const [userData, setUserData] = useState(null);
                   </div>
                 </div>
               )}
-              
+
               {/* Barre d'outils */}
               <div className="d-flex justify-content-between align-items-center pt-2">
                 <div className="d-flex gap-2 align-items-center">
@@ -243,7 +254,7 @@ const [userData, setUserData] = useState(null);
                       style={{ display: 'none' }}
                     />
                   </button>
-                  
+
                   {isUploading && (
                     <div className="progress" style={{ width: '100px', height: '6px' }}>
                       <div
@@ -253,17 +264,17 @@ const [userData, setUserData] = useState(null);
                       />
                     </div>
                   )}
-                  
+
                   {images.length > 0 && (
                     <small className="text-muted">
                       {images.length}/{MAX_IMAGES} images
                     </small>
                   )}
                 </div>
-                
+
                 <div className="d-flex gap-2">
-                  <button 
-                    type="button" 
+                  <button
+                    type="button"
                     className="btn btn-outline-secondary btn-sm"
                     onClick={() => {
                       setContent('');
@@ -274,8 +285,8 @@ const [userData, setUserData] = useState(null);
                   >
                     Annuler
                   </button>
-                  <button 
-                    type="submit" 
+                  <button
+                    type="submit"
                     className="btn btn-primary btn-sm px-3"
                     disabled={(!content.trim() && images.length === 0) || isUploading}
                   >
@@ -283,7 +294,7 @@ const [userData, setUserData] = useState(null);
                   </button>
                 </div>
               </div>
-              
+
               {/* Affichage des erreurs */}
               {error && (
                 <div className="alert alert-danger mt-3 mb-0 py-2">

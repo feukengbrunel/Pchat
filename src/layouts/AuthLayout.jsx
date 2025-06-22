@@ -1,4 +1,3 @@
-// Enlevez l'import de prop-types et les validations
 import logo from "../assets/images/logo/logo.png";
 import loginImage from "../assets/images/others/login-2.png";
 import Footer from "../components/footer";

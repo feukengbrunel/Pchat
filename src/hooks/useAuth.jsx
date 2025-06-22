@@ -148,6 +148,7 @@ const handleGoogleSignup = async () => {
       await setDoc(userDoc, {
         username: user.displayName || "Utilisateur Google",
         email: user.email,
+        uid: userCredential.user.uid,
         createdAt: serverTimestamp(),
         profileComplete: false
       });

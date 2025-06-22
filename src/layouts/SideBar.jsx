@@ -5,6 +5,10 @@ import { useNavigate, Link, useLocation } from "react-router-dom";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../firebase";
 import classNames from "classnames";
+import FriendRequestsSidebar from "../components/FreindRequestSidebar";
+import { collection, query, where, onSnapshot } from "firebase/firestore";
+import Avatar from "react-avatar";
+import ThemeSwitcher from "./ThemeSwitcher";
 
 export const Sidebar = ({ isMobileOpen, onToggleMobile }) => {
   const [expandedMenus, setExpandedMenus] = useState({
@@ -15,7 +19,35 @@ export const Sidebar = ({ isMobileOpen, onToggleMobile }) => {
   const { logout, currentUser } = useAuth();
   const [userData, setUserData] = useState(null);
   const location = useLocation();
+ const [friendRequests, setFriendRequests] = useState([]);
 
+  useEffect(() => {
+    if (!currentUser) return;
+   const unsubscribeRequests = onSnapshot(
+               query(
+                   collection(db, 'friendRequests'),
+                   where('receiverId', '==', currentUser.uid),
+                   where('status', '==', 'pending')
+               ),
+               async (snapshot) => {
+                   const requests = await Promise.all(
+                       snapshot.docs.map(async docSnap => {
+                           const senderId = docSnap.data().senderId;
+                           const userSnap = await getDoc(doc(db, 'users', senderId));
+                           return {
+                               id: docSnap.id,
+                               ...docSnap.data(),
+                               user: userSnap.exists() ? userSnap.data() : null
+                           };
+                       })
+                   );
+                   setFriendRequests(requests.filter(req => req.user));
+                  
+               }
+           );
+    
+      return () => unsubscribeRequests();
+  }, [currentUser]);
   // Récupération des infos utilisateur
   useEffect(() => {
     const fetchUserData = async () => {
@@ -74,6 +106,8 @@ export const Sidebar = ({ isMobileOpen, onToggleMobile }) => {
     return location.pathname.startsWith(path);
   };
 
+
+
   return (
     <>
       {/* Overlay mobile */}
@@ -89,13 +123,28 @@ export const Sidebar = ({ isMobileOpen, onToggleMobile }) => {
         <div className="side-nav-inner">
           {/* Profil utilisateur en haut */}
           <div className="user-profile-sidebar p-4 text-center">
+             <Link
+                  to="/users/profil"
+                  
+                >
             <div className="avatar avatar-lg mb-3">
-              <img
-                src={userData?.photoURL || "/assets/images/avatars/thumb-3.jpg"}
-                alt="Avatar"
-                className="avatar-img rounded-circle"
-              />
+              {userData?.photoURL ? (
+                <img
+                  src={userData?.photoURL || "/assets/images/avatars/thumb-3.jpg"}
+                  alt="Avatar"
+                  className="avatar-img rounded-circle"
+                />
+              ) :
+                (
+                  <Avatar
+                    name={userData?.username || userData?.displayName || currentUser?.displayName || currentUser?.email || "Utilisateur"}
+                    size="36"
+                    round
+                    className="border"
+                  />
+                )}
             </div>
+          </Link>
             <h6 className="mb-1">
               {userData?.username || userData?.displayName || currentUser?.displayName || currentUser?.email || "Utilisateur"}
             </h6>
@@ -107,7 +156,7 @@ export const Sidebar = ({ isMobileOpen, onToggleMobile }) => {
           <div className="side-nav-content">
             <ul className="side-nav-menu scrollable">
               {/* Accueil */}
-              <li className={`nav-item ${isActive("/users") ? "open active" : ""}`}>
+              <li className={`nav-item ${isActive("/users") || isActive("/users/home") ? "open active" : ""}`}>
                 <Link
                   to="/users/home"
                   className="dropdown-toggle"
@@ -187,7 +236,9 @@ export const Sidebar = ({ isMobileOpen, onToggleMobile }) => {
                     <i className="anticon anticon-usergroup-add"></i>
                   </span>
                   <span className="title">Amis</span>
-                  <span className="badge badge-success float-right">5</span>
+                  {friendRequests.length > 0 && (
+                    <span className="badge badge-success float-right">{friendRequests.length}</span>
+                  )}
                 </Link>
               </li>
               {/* Paramètres */}
@@ -216,61 +267,16 @@ export const Sidebar = ({ isMobileOpen, onToggleMobile }) => {
                     </Link>
                   </li>
                   <li>
-                    <Link to="/users/parametres/theme" className="nav-link">
-                      Thème
+                    <Link to="" className="nav-link">
+                      <ThemeSwitcher/>
                     </Link>
+                   
                   </li>
                 </ul>
               </li>
 
               {/* Section invitations */}
-              <div className="friend-requests-container mt-3 px-3">
-                <div className="card border-0 shadow-sm">
-                  <div className="card-body py-3 px-2">
-                    <div className="d-flex justify-content-between align-items-center mb-2">
-                      <h6 className="card-title m-0 font-weight-bold" style={{ fontSize: "1rem" }}>
-                        Invitations
-                      </h6>
-                      <Link to="/users/invitations" className="text-primary small">
-                        Voir tout
-                      </Link>
-                    </div>
-                    <div className="d-flex align-items-center mb-2">
-                      <div className="avatar avatar-sm avatar-image mr-2">
-                        <img
-                          src={lastRequest.avatar}
-                          alt="Friend"
-                          style={{ width: 36, height: 36, borderRadius: "50%" }}
-                        />
-                      </div>
-                      <div className="flex-grow-1">
-                        <div className="font-weight-semibold" style={{ fontSize: "0.95rem" }}>
-                          {lastRequest.name}
-                        </div>
-                        <small className="text-muted">
-                          {lastRequest.mutualFriends} ami en commun
-                        </small>
-                      </div>
-                    </div>
-                    <div className="d-flex">
-                      <button
-                        className="btn btn-primary btn-xs flex-fill mr-1"
-                        style={{ fontSize: "0.85rem", padding: "0.25rem 0.5rem" }}
-                        onClick={handleAccept}
-                      >
-                        Confirmer
-                      </button>
-                      <button
-                        className="btn btn-light btn-xs flex-fill"
-                        style={{ fontSize: "0.85rem", padding: "0.25rem 0.5rem" }}
-                        onClick={handleDecline}
-                      >
-                        Supprimer
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <FriendRequestsSidebar />
             </ul>
           </div>
 

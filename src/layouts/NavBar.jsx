@@ -6,6 +6,7 @@ import { ToastContainer, toast } from "react-toastify";
 import { useNavigate, Link, useLocation, Navigate } from "react-router-dom";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../firebase";
+import Avatar from "react-avatar";
 export const Navbar = ({ onToggleSidebar }) => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -76,7 +77,7 @@ export const Navbar = ({ onToggleSidebar }) => {
   };
 
   return (
-    <div className="header">
+    <div className="header bg-white dark:bg-gray-900">
       {/* Bouton toggle pour mobile */}
       {isMobile && (
         <button className="mobile-toggle btn " onClick={onToggleSidebar}>
@@ -151,6 +152,9 @@ export const Navbar = ({ onToggleSidebar }) => {
               <div className="p-v-15 p-h-25 border-bottom d-flex justify-content-between align-items-center">
                 <p className="text-dark font-weight-semibold m-b-0">
                   <i className="anticon anticon-bell"></i>
+                  <div className="bg-white dark:bg-gray-900">
+  {/* ... */}hhh
+</div>
                   <span className="m-l-10">Notifications</span>
                 </p>
                 <button className="btn-sm btn-default btn">
@@ -232,9 +236,21 @@ export const Navbar = ({ onToggleSidebar }) => {
               style={{ background: "none", border: "none", cursor: "pointer" }}
             >
               <div className="avatar avatar-image m-h-10 m-r-15">
-                <img src={userData?.photoURL || "/assets/images/avatars/thumb-3.jpg"}
-                  alt="Avatar"
-                  className="avatar-img rounded-circle" />
+                {userData?.photoURL ? (
+                  <img
+                    src={userData?.photoURL || "/assets/images/avatars/thumb-3.jpg"}
+                    alt="Avatar"
+                    className="avatar-img rounded-circle"
+                  />
+                ) :
+                  (
+                    <Avatar
+                      name={userData?.username || userData?.displayName || currentUser?.displayName || currentUser?.email || "Utilisateur"}
+                      size="36"
+                      round
+                      className="border"
+                    />
+                  )}
               </div>
             </button>
 
@@ -249,14 +265,24 @@ export const Navbar = ({ onToggleSidebar }) => {
                 zIndex: 1000,
               }}
             >
-              <div className="p-h-20 p-b-15 m-b-10 border-bottom">
-                <div className="d-flex m-r-50">
-                  <div className="avatar avatar-lg avatar-image">
-                    <img
-                      src={userData?.photoURL || "/assets/images/avatars/thumb-3.jpg"}
-                      alt="Avatar"
-                      className="avatar-img rounded-circle"
-                    />
+              <div className="ph-20 pb-15 m-b-10 border-bottom">
+                <div className="d-flex mr-50">
+                  <div className="avatar avatar-image mh-10 ">
+                    {userData?.photoURL ? (
+                      <img
+                        src={userData?.photoURL || "/assets/images/avatars/thumb-3.jpg"}
+                        alt="Avatar"
+                        className="avatar-img rounded-circle"
+                      />
+                    ) :
+                      (
+                        <Avatar
+                          name={userData?.username || userData?.displayName || currentUser?.displayName || currentUser?.email || "Utilisateur"}
+                          size="36"
+                          round
+                          className="border"
+                        />
+                      )}
                   </div>
                   <div className="m-l-10">
                     <p className="m-b-0 text-dark font-weight-semibold">
@@ -266,7 +292,7 @@ export const Navbar = ({ onToggleSidebar }) => {
                   </div>
                 </div>
               </div>
-              <a href="#" className="dropdown-item d-block p-h-15 p-v-10">
+              <a href="/users/profil" className="dropdown-item d-block p-h-15 p-v-10">
                 <div className="d-flex align-items-center justify-content-between">
                   <div>
                     <i className="anticon opacity-04 font-size-16 anticon-user"></i>

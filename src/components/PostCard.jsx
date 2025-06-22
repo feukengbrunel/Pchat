@@ -22,6 +22,7 @@ import { REACTIONS, DEFAULT_REACTION } from './reactions';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { arrayUnion, arrayRemove } from "firebase/firestore";
+import Avatar from "react-avatar";
 
 const PostCard = ({ post, onDelete }) => {
   const [isLiked, setIsLiked] = useState(false);
@@ -85,7 +86,7 @@ const PostCard = ({ post, onDelete }) => {
 
       setReactionsCount(counts);
       setUserReaction(userReact);
-       setIsLiked(userReact === "LIKE"); //
+      setIsLiked(userReact === "LIKE"); //
     });
 
     // Vérifier si l'utilisateur a bookmarké ce post
@@ -115,16 +116,16 @@ const PostCard = ({ post, onDelete }) => {
       if (isBookmarked) {
         await deleteDoc(bookmarkRef);
         await updateDoc(postRef, {
-        bookmarks: arrayRemove(auth.currentUser.uid)
-      });
+          bookmarks: arrayRemove(auth.currentUser.uid)
+        });
       } else {
         await setDoc(bookmarkRef, {
           postId: post.id,
           createdAt: serverTimestamp()
         });
         await updateDoc(postRef, {
-        bookmarks: arrayUnion(auth.currentUser.uid)
-      });
+          bookmarks: arrayUnion(auth.currentUser.uid)
+        });
       }
       setIsBookmarked(!isBookmarked);
     } catch (error) {
@@ -165,39 +166,39 @@ const PostCard = ({ post, onDelete }) => {
       console.error("Error handling reaction:", error);
     }
   };
-// Fonction pour gérer le like
-const handleLike = async () => {
-  if (!auth.currentUser) return;
+  // Fonction pour gérer le like
+  const handleLike = async () => {
+    if (!auth.currentUser) return;
 
-  const reactionRef = doc(db, 'posts', post.id, 'reactions', auth.currentUser.uid);
-  const postRef = doc(db, 'posts', post.id);
+    const reactionRef = doc(db, 'posts', post.id, 'reactions', auth.currentUser.uid);
+    const postRef = doc(db, 'posts', post.id);
 
-  try {
-    if (isLiked) {
-      // Retirer le like
-      await deleteDoc(reactionRef);
-      await updateDoc(postRef, {
-        "reactionsCount.LIKE": increment(-1)
-      });
-      setIsLiked(false);
-      setUserReaction(null);
-    } else {
-      // Ajouter le like
-      await setDoc(reactionRef, {
-        type: "LIKE",
-        userId: auth.currentUser.uid,
-        createdAt: serverTimestamp()
-      });
-      await updateDoc(postRef, {
-        "reactionsCount.LIKE": increment(1)
-      });
-      setIsLiked(true);
-      setUserReaction("LIKE");
+    try {
+      if (isLiked) {
+        // Retirer le like
+        await deleteDoc(reactionRef);
+        await updateDoc(postRef, {
+          "reactionsCount.LIKE": increment(-1)
+        });
+        setIsLiked(false);
+        setUserReaction(null);
+      } else {
+        // Ajouter le like
+        await setDoc(reactionRef, {
+          type: "LIKE",
+          userId: auth.currentUser.uid,
+          createdAt: serverTimestamp()
+        });
+        await updateDoc(postRef, {
+          "reactionsCount.LIKE": increment(1)
+        });
+        setIsLiked(true);
+        setUserReaction("LIKE");
+      }
+    } catch (error) {
+      console.error("Error handling like:", error);
     }
-  } catch (error) {
-    console.error("Error handling like:", error);
-  }
-};
+  };
   useEffect(() => {
     const checkOverflow = () => {
       if (contentRef.current) {
@@ -287,11 +288,22 @@ const handleLike = async () => {
       {/* En-tête du post */}
       <div className="post-header">
         <div className="author-info">
-          <img
-            src={authorAvatar || "/default-avatar.png"}
-            alt="Profile"
-            className="author-avatar"
-          />
+        
+          {authorAvatar? (
+                <img
+                  src={authorAvatar || "/assets/images/avatars/thumb-3.jpg"}
+                  alt="Profile"
+                  className="author-avatar"
+                />
+              ) :
+                (
+                  <Avatar
+                    name={post.authorName}
+                    size="36"
+                    round
+                    className="border"
+                  />
+                )}
           <div>
             <h4 className="author-name">{post.authorName}</h4>
             <span className="post-date">{formatDate(post.createdAt)}</span>
@@ -387,18 +399,21 @@ const handleLike = async () => {
 
       {/* Actions principales */}
       <div className="post-actions-bar">
+        
         <ReactionSelector
+          className="action-btn border-none"
           currentReaction={userReaction}
           onSelect={handleReaction}
           tooltipPlacement="top"
         />
+
         <button
-  className={`action-btn${isLiked ? " active" : ""}`}
-  onClick={handleLike}
->
-  {isLiked ? <FaHeart color="#e74c3c" /> : <FaRegHeart />}
-  <span>J'aime</span>
-</button>
+          className={`action-btn${isLiked ? " active" : ""}`}
+          onClick={handleLike}
+        >
+          {isLiked ? <FaHeart color="#e74c3c" /> : <FaRegHeart />}
+          <span>J'aime</span>
+        </button>
         <button
           className={`action-btn ${showComments ? 'active' : ''}`}
           onClick={() => setShowComments(!showComments)}

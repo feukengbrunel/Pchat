@@ -1,6 +1,5 @@
 export const REACTIONS = {
-  LIKE: { emoji: '👍', color: '#1877f2' },
-  LOVE: { emoji: '❤️', color: '#f33e58' },
+  LIKE: { emoji: '👍', color: '#1877f2' }, 
   HAHA: { emoji: '😆', color: '#f7b125' },
   WOW: { emoji: '😮', color: '#f7b125' },
   SAD: { emoji: '😢', color: '#f7b125' },

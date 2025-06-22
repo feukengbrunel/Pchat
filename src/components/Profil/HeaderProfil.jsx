@@ -3,7 +3,8 @@ import { getAuth } from 'firebase/auth';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../../firebase';
 import axios from 'axios';
-
+import { useAuth } from "../../hooks/useAuth";
+import Avatar from 'react-avatar';
 const ProfilHeader = () => {
     const [userData, setUserData] = useState({
         displayName: 'FTB',
@@ -20,6 +21,7 @@ const ProfilHeader = () => {
             dribbble: '#'
         }
     });
+    const { logout, currentUser } = useAuth();
     const [loading, setLoading] = useState(true);
     const [uploading, setUploading] = useState(false);
     const [formData, setFormData] = useState({});
@@ -148,7 +150,7 @@ const ProfilHeader = () => {
             data.socialLinks.dribbble
         );
     }
-  
+
 
     return (
         <>
@@ -159,11 +161,26 @@ const ProfilHeader = () => {
                             <div className="d-md-flex align-items-center">
                                 <div className="text-center text-sm-left">
                                     <div className="avatar avatar-image position-relative avatar-wrapper mb-3" >
-                                        <img src={userData.photoURL} alt="Profile" className='profile-img' style={{
-                                            objectFit: 'contain',
-                                            width: '100%',
-                                            height: '100%'
-                                        }} />
+
+                                        {userData?.photoURL && userData.photoURL !== "" && userData.photoURL!=="assets/images/avatars/thumb-3.jpg"? (
+                                            <img
+                                                src={userData.photoURL}
+                                                alt="Profile"
+                                                className="profile-img"
+                                                style={{
+                                                    objectFit: 'cover',
+                                                    width: '100%',
+                                                    height: '100%'
+                                                }}
+                                            />
+                                        ) : (
+                                            <Avatar
+                                                name={userData?.username || userData?.displayName || currentUser?.displayName || currentUser?.email || "Utilisateur"}
+                                                size="140"
+                                                round
+                                                className="border"
+                                            />
+                                        )}
                                     </div>
                                 </div>
                                 <div className="text-center text-sm-left m-v-15 p-l-30">
@@ -255,17 +272,26 @@ const ProfilHeader = () => {
                             <form onSubmit={handleSubmit}>
                                 <div className="form-group">
                                     <label>Photo de profil</label>
-                                    <div className="d-flex align-items-center avatar-wrapper mb-3" style={{ width: '100px', height: '100px' }}>
-                                        <img
-                                            src={userData.photoURL}
-                                            alt="Profile"
-                                            className="rounded-circle mr-3 profile-img"
-                                            style={{
-                                                objectFit: 'cover',
-                                                width: '100%',
-                                                height: '100%'
-                                            }}
-                                        />
+                                    <div className="d-flex  avatar-wrapper mb-3" style={{ height: '100px' }}>
+                                          {userData?.photoURL && userData.photoURL !== "" && userData.photoURL!=="assets/images/avatars/thumb-3.jpg"? (
+                                            <img
+                                                src={userData.photoURL}
+                                                alt="Profile"
+                                                className="profile-img"
+                                                style={{
+                                                    objectFit: 'cover',
+                                                    width: '100%',
+                                                    height: '100%'
+                                                }}
+                                            />
+                                        ) : (
+                                            <Avatar
+                                                name={userData?.username || userData?.displayName || currentUser?.displayName || currentUser?.email || "Utilisateur"}
+                                                size="140"
+                                                round
+                                                className="border"
+                                            />
+                                        )}
                                         <div>
                                             <input
                                                 type="file"

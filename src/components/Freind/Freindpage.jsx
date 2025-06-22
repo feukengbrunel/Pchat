@@ -1,9 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Card, Button, Spinner, Tab, Tabs, Image, Badge } from 'react-bootstrap';
-import { FaUserPlus, FaCheck, FaTimes, FaUserFriends, FaEnvelope } from 'react-icons/fa';
-import { collection, query, where, getDocs, doc, getDoc, setDoc, updateDoc, onSnapshot, increment, FieldPath } from 'firebase/firestore';
+import {
+    Container, Row, Col, Card, Button, Spinner, Tab, Tabs, Image, Badge, Placeholder,
+    Nav
+} from 'react-bootstrap';
+import {
+    FaUserPlus, FaCheck, FaTimes, FaUserFriends, FaEnvelope, FaUser
+} from 'react-icons/fa';
+import {
+    collection, query, where, getDocs, doc, getDoc, setDoc, updateDoc,
+    onSnapshot, increment
+} from 'firebase/firestore';
 import { db, auth } from '../../firebase';
 import { useAuth } from '../../hooks/useAuth';
+import Avatar from 'react-avatar';
 
 const FriendsPage = () => {
     const { currentUser } = useAuth();
@@ -13,7 +22,6 @@ const FriendsPage = () => {
     const [loadingSuggestions, setLoadingSuggestions] = useState(true);
     const [activeTab, setActiveTab] = useState('requests');
 
-    // Récupérer les demandes d'amis
     useEffect(() => {
         if (!currentUser) return;
 
@@ -43,13 +51,11 @@ const FriendsPage = () => {
         return () => unsubscribeRequests();
     }, [currentUser]);
 
-    // Récupérer les suggestions
     useEffect(() => {
         if (!currentUser || loadingRequests) return;
 
         const fetchSuggestions = async () => {
             try {
-                // 1. Récupérer la liste des amis et demandes pour exclusion
                 const friendsQuery = query(
                     collection(db, 'friendRequests'),
                     where('senderId', '==', currentUser.uid)
@@ -57,17 +63,16 @@ const FriendsPage = () => {
                 const friendsSnapshot = await getDocs(friendsQuery);
                 const friendIds = friendsSnapshot.docs.map(doc => doc.data().receiverId);
 
-                // 2. Récupérer tous les utilisateurs sauf moi et mes amis
                 const usersQuery = query(
                     collection(db, 'users'),
                     where('uid', '!=', currentUser.uid)
                 );
                 const usersSnapshot = await getDocs(usersQuery);
-                
+
                 const users = usersSnapshot.docs
                     .map(doc => ({ id: doc.id, ...doc.data() }))
                     .filter(user => !friendIds.includes(user.id));
-                 console.error("Error fetching suggestions:", users);
+
                 setSuggestions(users);
             } catch (error) {
                 console.error("Error fetching suggestions:", error);
@@ -86,7 +91,6 @@ const FriendsPage = () => {
 
             if (action === 'accepted') {
                 const request = friendRequests.find(req => req.id === requestId);
-                // Mettre à jour les compteurs d'amis
                 await updateDoc(doc(db, 'users', currentUser.uid), {
                     friendsCount: increment(1)
                 });
@@ -107,7 +111,6 @@ const FriendsPage = () => {
                 status: 'pending',
                 createdAt: new Date()
             });
-            // Mettre à jour les suggestions après envoi
             setSuggestions(suggestions.filter(user => user.id !== userId));
         } catch (error) {
             console.error("Error sending friend request:", error);
@@ -115,37 +118,50 @@ const FriendsPage = () => {
     };
 
     return (
-        <Container className="py-4">
+        <Container className="">
             <h2 className="mb-4">Gestion des amis</h2>
-            
-            <Tabs
-                activeKey={activeTab}
-                onSelect={setActiveTab}
-                className="mb-4"
-                variant="pills"
-            >
-                <Tab 
-                    eventKey="requests" 
-                    title={
-                        <div className="d-flex align-items-center">
-                            <FaUserFriends className="me-2" />
-                            Demandes 
+
+            {/* Nouvelle version des tabs plus professionnelle */}
+            <div className="mb-4">
+                <Nav variant="tabs" className=" custom-tabs flex-nowrap overflow-auto pb-1" activeKey={activeTab}>
+                    <Nav.Item className="flex-shrink-0">
+                        <Nav.Link
+                            eventKey="requests"
+                            onClick={() => setActiveTab('requests')}
+                            className="d-flex align-items-center"
+                        >
+                            <FaUserFriends className="mr-2" />
+                            Demandes
                             {friendRequests.length > 0 && (
-                                <Badge bg="danger" className="ms-2">{friendRequests.length}</Badge>
+                                <Badge bg="danger" pill className="ml-2 text-white">
+                                    {friendRequests.length}
+                                </Badge>
                             )}
-                        </div>
-                    }
-                >
-                    {loadingRequests ? (
-                        <div className="text-center py-5">
-                            <Spinner animation="border" variant="primary" />
-                            <p className="mt-2">Chargement des demandes...</p>
-                        </div>
-                    ) : (
-                        <Row xs={1} md={2} lg={3} className="g-4 py-3">
-                            {friendRequests.length > 0 ? (
+                        </Nav.Link>
+                    </Nav.Item>
+                    <Nav.Item className="flex-shrink-0">
+                        <Nav.Link
+                            eventKey="suggestions"
+                            onClick={() => setActiveTab('suggestions')}
+                            className="d-flex align-items-center"
+                        >
+                            <FaUserPlus className="mr-2" />
+                            Suggestions
+                        </Nav.Link>
+                    </Nav.Item>
+                </Nav>
+
+                <div className="border border-top-0 rounded-bottom p-3">
+                    {activeTab === 'requests' ? (
+                        <Row className="g-4 py-3">
+                            {loadingRequests ? (
+                                <Col className="text-center py-5">
+                                    <Spinner animation="border" variant="primary" />
+                                    <p className="mt-2">Chargement des demandes...</p>
+                                </Col>
+                            ) : friendRequests.length > 0 ? (
                                 friendRequests.map(request => (
-                                    <Col key={request.id}>
+                                    <Col key={request.id} xs={12} sm={6} md={4} lg={3} className='mb-4'>
                                         <FriendCard
                                             user={request.user}
                                             isRequest
@@ -155,35 +171,25 @@ const FriendsPage = () => {
                                     </Col>
                                 ))
                             ) : (
-                                <div className="text-center py-5">
-                                    <Image src="/no-requests.svg" alt="No requests" fluid style={{ maxWidth: '300px' }} />
+                                <Col className="text-center py-5">
+                                    <div className="bg-light rounded-circle d-inline-flex p-4 mb-3">
+                                        <FaUserFriends size={48} className="text-muted" />
+                                    </div>
                                     <h5 className="mt-3">Aucune demande d'amitié</h5>
                                     <p className="text-muted">Vous n'avez aucune demande en attente</p>
-                                </div>
+                                </Col>
                             )}
                         </Row>
-                    )}
-                </Tab>
-                
-                <Tab 
-                    eventKey="suggestions" 
-                    title={
-                        <div className="d-flex align-items-center">
-                            <FaUserPlus className="me-2" />
-                            Suggestions
-                        </div>
-                    }
-                >
-                    {loadingSuggestions ? (
-                        <div className="text-center py-5">
-                            <Spinner animation="border" variant="primary" />
-                            <p className="mt-2">Chargement des suggestions...</p>
-                        </div>
                     ) : (
-                        <Row xs={1} md={2} lg={3} className="g-4 py-3">
-                            {suggestions.length > 0 ? (
+                        <Row className="g-4 py-3">
+                            {loadingSuggestions ? (
+                                <Col className="text-center py-5">
+                                    <Spinner animation="border" variant="primary" />
+                                    <p className="mt-2">Chargement des suggestions...</p>
+                                </Col>
+                            ) : suggestions.length > 0 ? (
                                 suggestions.map(user => (
-                                    <Col key={user.id}>
+                                    <Col key={user.id} xs={12} sm={6} md={4} lg={3} className='mb-4'>
                                         <FriendCard
                                             user={user}
                                             onAddFriend={() => sendFriendRequest(user.id)}
@@ -191,68 +197,130 @@ const FriendsPage = () => {
                                     </Col>
                                 ))
                             ) : (
-                                <div className="text-center py-5">
-                                    <Image src="/no-suggestions.svg" alt="No suggestions" fluid style={{ maxWidth: '300px' }} />
+                                <Col className="text-center py-5">
+                                    <div className="bg-light rounded-circle d-inline-flex p-4 mb-3">
+                                        <FaUserPlus size={48} className="text-muted" />
+                                    </div>
                                     <h5 className="mt-3">Aucune suggestion</h5>
                                     <p className="text-muted">Nous n'avons pas trouvé de suggestions pour vous</p>
-                                </div>
+                                </Col>
                             )}
                         </Row>
                     )}
-                </Tab>
-            </Tabs>
+                </div>
+            </div>
+            <style jsx>{`
+            .custom-tabs .nav-link {
+  position: relative;
+  color: #444;
+  font-weight: 500;
+  background: none;
+  border: none;
+  transition: color 0.4s;
+}
+
+.custom-tabs .nav-link.active,
+.custom-tabs .nav-link:focus {
+  color: #007bff;
+  background: none;
+}
+
+.custom-tabs .nav-link.active::after {
+  content: "";
+  display: block;
+  position: absolute;
+  left: 20%;
+  right: 20%;
+  bottom: 0;
+  height: 3px;
+  background: #007bff;
+  border-radius: 2px 2px 0 0;
+  transition: all 0.3s;
+}
+
+.custom-tabs .nav-link:not(.active)::after {
+  content: "";
+  display: block;
+  position: absolute;
+  left: 20%;
+  right: 20%;
+  bottom: 0;
+  height: 3px;
+  background: transparent;
+  transition: all 0.3s;
+}
+  `}</style>
         </Container>
     );
 };
 
 const FriendCard = ({ user, isRequest, onAccept, onReject, onAddFriend }) => {
     return (
-        <Card className="h-100 shadow-sm border-0">
-            <Card.Body className="d-flex flex-column align-items-center text-center p-4">
-                <div className="position-relative mb-3">
-                    <Image
-                        src={user.photoURL || '/default-avatar.png'}
-                        alt={user.displayName}
-                        roundedCircle
-                        className="img-thumbnail border-primary"
-                        style={{ width: '120px', height: '120px', objectFit: 'cover' }}
-                    />
+        <Card className="h-100 shadow-sm ">
+            <Card.Body className="d-flex flex-column">
+                <div className="d-flex flex-column align-items-center mb-3">
+                    <div className="position-relative mb-3">
+                        {user?.photoURL ? (
+                            <Image
+                                src={user.photoURL}
+                                alt={user.displayName}
+                                roundedCircle
+                                className="border border-3 border-primary"
+                                style={{ width: '100px', height: '100px', objectFit: 'cover' }}
+                            />
+                        ) : (
+                            <div className="d-flex align-items-center justify-content-center bg-light rounded-circle border border-3 border-primary"
+                                style={{ width: '100px', height: '100px' }}>
+                                <Avatar
+                                    name={user?.username || user?.displayName || 'Utilisateur'}
+                                    size="100"
+                                    round
+                                    className="border border-3 border-primary"
+                                />
+                            </div>
+                        )}
+                    </div>
+
+                    <h5 className="mb-1 text-center text-truncate w-100">
+                        {user?.username || user?.displayName || 'Utilisateur'}
+                    </h5>
+
+                    {user?.bio && (
+                        <p className="text-muted text-center mb-3 small">
+                            {user.bio.length > 60 ? `${user.bio.substring(0, 60)}...` : user.bio}
+                        </p>
+                    )}
                 </div>
-                
-                <h5 className="mb-1">{user?.username||user?.displayName}</h5>
-                {user.bio && (
-                    <p className="text-muted mb-3" style={{ fontSize: '0.9rem' }}>
-                        {user.bio.length > 80 ? `${user.bio.substring(0, 80)}...` : user.bio}
-                    </p>
-                )}
-                
-                <div className="mt-auto w-100">
+
+                <div className="mt-auto d-grid gap-2">
                     {isRequest ? (
-                        <div className="d-grid gap-2">
-                            <Button variant="success" onClick={onAccept}>
-                                <FaCheck className="me-2" /> Accepter
+                        <div className="d-flex flex-column  gap-2 w-100">
+                            <Button
+                                variant="success"
+                                onClick={onAccept}
+                                className="flex-fill d-flex align-items-center justify-content-center"
+                            >
+                                <FaCheck className="mr-2" /> Accepter
                             </Button>
-                            <Button variant="outline-danger" onClick={onReject}>
-                                <FaTimes className="me-2" /> Refuser
+                            <Button
+                                variant="outline-danger"
+                                onClick={onReject}
+                                className="flex-fill d-flex align-items-center justify-content-center mt-2"
+                            >
+                                <FaTimes className="mr-2" /> Refuser
                             </Button>
                         </div>
                     ) : (
-                        <Button 
-                            variant="primary" 
-                            className="w-100 mb-2"
+                        <Button
+                            variant="primary"
                             onClick={onAddFriend}
+                            className="d-flex align-items-center justify-content-center w-100"
                         >
-                            <FaUserPlus className="me-2" /> Ajouter
+                            <FaUserPlus className="mr-2" /> Ajouter
                         </Button>
                     )}
-                    
-                    <Button 
-                        variant="outline-secondary" 
-                        className="w-100"
-                        href={`/profile/${user.id}`}
-                    >
-                        <FaEnvelope className="me-2" /> Voir profil
-                    </Button>
+
+
                 </div>
             </Card.Body>
         </Card>
