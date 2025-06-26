@@ -13,6 +13,7 @@ import {
 import { db, auth } from '../../firebase';
 import { useAuth } from '../../hooks/useAuth';
 import Avatar from 'react-avatar';
+import { ClipLoader } from 'react-spinners';
 
 const FriendsPage = () => {
     const { currentUser } = useAuth();
@@ -92,14 +93,14 @@ const FriendsPage = () => {
             if (action === 'accepted') {
                 const request = friendRequests.find(req => req.id === requestId);
                 // Ajout dans la sous-collection friends des deux utilisateurs
-            await setDoc(doc(db, 'users', currentUser.uid, 'friends', request.senderId), {
-                uid: request.senderId,
-                addedAt: new Date()
-            });
-            await setDoc(doc(db, 'users', request.senderId, 'friends', currentUser.uid), {
-                uid: currentUser.uid,
-                addedAt: new Date()
-            });
+                await setDoc(doc(db, 'users', currentUser.uid, 'friends', request.senderId), {
+                    uid: request.senderId,
+                    addedAt: new Date()
+                });
+                await setDoc(doc(db, 'users', request.senderId, 'friends', currentUser.uid), {
+                    uid: currentUser.uid,
+                    addedAt: new Date()
+                });
                 await updateDoc(doc(db, 'users', currentUser.uid), {
                     friendsCount: increment(1)
                 });
@@ -165,8 +166,9 @@ const FriendsPage = () => {
                         <Row className="g-4 py-3">
                             {loadingRequests ? (
                                 <Col className="text-center py-5">
-                                    <Spinner animation="border" variant="primary" />
-                                    <p className="mt-2">Chargement des demandes...</p>
+
+                                    <ClipLoader color="#007bff" size={50} />
+                                <p className="mt-2">Chargement des demandes...</p>
                                 </Col>
                             ) : friendRequests.length > 0 ? (
                                 friendRequests.map(request => (
@@ -193,7 +195,7 @@ const FriendsPage = () => {
                         <Row className="g-4 py-3">
                             {loadingSuggestions ? (
                                 <Col className="text-center py-5">
-                                    <Spinner animation="border" variant="primary" />
+                                 <ClipLoader color="#007bff" size={50} />
                                     <p className="mt-2">Chargement des suggestions...</p>
                                 </Col>
                             ) : suggestions.length > 0 ? (

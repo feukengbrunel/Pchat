@@ -6,6 +6,7 @@ import { db } from '../../firebase';
 import { useAuth } from '../../hooks/useAuth';
 import { Link } from 'react-router-dom';
 import PostCard from '../PostCard';
+import { ClipLoader } from 'react-spinners';
 
 const FavoritesPage = () => {
   const { currentUser } = useAuth();
@@ -84,9 +85,9 @@ useEffect(() => {
 
   if (loading) {
     return (
-      <Container className="d-flex justify-content-center align-items-center" style={{ minHeight: '60vh' }}>
-        <Spinner animation="border" variant="primary" />
-      </Container>
+     <div className="d-flex justify-content-center align-items-center" style={{ minHeight: "60vh" }}>
+      <ClipLoader color="#007bff" size={50} />
+    </div>
     );
   }
 

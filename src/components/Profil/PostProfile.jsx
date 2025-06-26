@@ -4,6 +4,7 @@ import { db } from "../../firebase";
 import PostCard from "../PostCard";
 import { Spinner, Alert, Button } from "react-bootstrap";
 import { FaPlus } from "react-icons/fa";
+import { ClipLoader } from "react-spinners";
 
 const UserPosts = ({ userId, isCurrentUser }) => {
   const [posts, setPosts] = useState([]);
@@ -31,10 +32,10 @@ const UserPosts = ({ userId, isCurrentUser }) => {
           ...doc.data(),
           createdAt: doc.data().createdAt?.toDate() // Convertir le timestamp
         }));
-        
+
         setPosts(postsData);
         setLoading(false);
-        
+
         // Mettre à jour la pagination
         if (snapshot.docs.length > 0) {
           setLastVisible(snapshot.docs[snapshot.docs.length - 1]);
@@ -58,7 +59,7 @@ const UserPosts = ({ userId, isCurrentUser }) => {
 
     try {
       setLoading(true);
-      
+
       const nextQuery = query(
         collection(db, "posts"),
         where("authorId", "==", userId),
@@ -75,7 +76,7 @@ const UserPosts = ({ userId, isCurrentUser }) => {
       }));
 
       setPosts(prev => [...prev, ...newPosts]);
-      
+
       if (snapshot.docs.length > 0) {
         setLastVisible(snapshot.docs[snapshot.docs.length - 1]);
         setHasMore(snapshot.docs.length === 10);
@@ -90,10 +91,12 @@ const UserPosts = ({ userId, isCurrentUser }) => {
     }
   };
 
-  if (loading && posts.length === 0) {
+  if (loading) {
     return (
       <div className="text-center my-5">
-        <Spinner animation="border" variant="primary" />
+
+        <ClipLoader color="#007bff" size={50} />
+
       </div>
     );
   }
@@ -122,8 +125,8 @@ const UserPosts = ({ userId, isCurrentUser }) => {
       {posts.length === 0 ? (
         <div className="empty-posts text-center py-5">
           <h5 className="text-muted">
-            {isCurrentUser 
-              ? "Vous n'avez pas encore de publications" 
+            {isCurrentUser
+              ? "Vous n'avez pas encore de publications"
               : "Cet utilisateur n'a pas encore publié"}
           </h5>
           {isCurrentUser && (
@@ -135,16 +138,16 @@ const UserPosts = ({ userId, isCurrentUser }) => {
       ) : (
         <>
           {posts.map(post => (
-            <PostCard key={post.id} post={post} 
-            onDelete={id => setPosts(prev => prev.filter(p => p.id !== id))}
+            <PostCard key={post.id} post={post}
+              onDelete={id => setPosts(prev => prev.filter(p => p.id !== id))}
             />
           ))}
 
           {/* Bouton pour charger plus de publications */}
           {hasMore && (
             <div className="text-center mt-4">
-              <Button 
-                variant="outline-primary" 
+              <Button
+                variant="outline-primary"
                 onClick={loadMorePosts}
                 disabled={loading}
               >

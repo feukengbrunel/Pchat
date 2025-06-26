@@ -15,6 +15,8 @@ import "./assets/css/app.min.css";
 import FavoritesPages from "./pages/favoris.jsx";
 import Freind from "./pages/freind.jsx";
 import { ThemeProvider } from "./context/ThemeProvider.jsx";
+import ChatPage from "./pages/messages.jsx";
+
 
 // ...le reste de vos imports...
 function App() {
@@ -53,6 +55,7 @@ function App() {
             {/* <Route path="profil/:id" element={<Profil />} /> */}
             <Route path="favoris" element={<FavoritesPages />} />
             <Route path="freinds" element={<Freind />} />
+            <Route path="messages" element={<ChatPage/>} />
           </Route>
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>

@@ -5,6 +5,7 @@ import { db } from '../firebase';
 import { useAuth } from '../hooks/useAuth';
 import Avatar from 'react-avatar';
 import { Spinner } from 'react-bootstrap';
+import { ClipLoader } from 'react-spinners';
 
 const FriendRequestsSidebar = () => {
     const { currentUser } = useAuth();
@@ -87,7 +88,9 @@ const FriendRequestsSidebar = () => {
             <div className="friend-requests-container mt-3 px-3">
                 <div className="card border-0 shadow-sm">
                     <div className="card-body py-3 px-2 text-center">
-                        <Spinner animation="border" size="sm" />
+                       
+                             <ClipLoader color="#007bff" size={50} />
+                          
                     </div>
                 </div>
             </div>

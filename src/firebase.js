@@ -1,6 +1,8 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
+import { getDatabase, ref, onValue, off, push, serverTimestamp } from "firebase/database";
 
+export { ref, onValue, off, push, serverTimestamp };
 import {getFirestore} from "firebase/firestore";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getStorage } from "firebase/storage";
@@ -32,3 +34,4 @@ setPersistence(auth, browserLocalPersistence);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
 export const googleProvider = new GoogleAuthProvider();
+export const rtdb = getDatabase(app); // Real-time Database
