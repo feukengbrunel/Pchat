@@ -118,8 +118,8 @@ export function SignupPage() {
                   {/* Right Side - Form */}
                   <div className="col-md-6">
                     <div className="card-body p-4 p-lg-5">
-                      <h2 className="text-center mb-4">Echat</h2>
-                      <h5 className="text-center text-muted mb-4">Sign In</h5>
+                     
+                      <h5 className="text-center  mb-4">Sign In</h5>
                       <p className="text-center text-muted mb-4">Enter your credential to get access</p>
                       
                       <form onSubmit={handleSubmit} className="needs-validation" noValidate>

@@ -91,6 +91,15 @@ const FriendsPage = () => {
 
             if (action === 'accepted') {
                 const request = friendRequests.find(req => req.id === requestId);
+                // Ajout dans la sous-collection friends des deux utilisateurs
+            await setDoc(doc(db, 'users', currentUser.uid, 'friends', request.senderId), {
+                uid: request.senderId,
+                addedAt: new Date()
+            });
+            await setDoc(doc(db, 'users', request.senderId, 'friends', currentUser.uid), {
+                uid: currentUser.uid,
+                addedAt: new Date()
+            });
                 await updateDoc(doc(db, 'users', currentUser.uid), {
                     friendsCount: increment(1)
                 });

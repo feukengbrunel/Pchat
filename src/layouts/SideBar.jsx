@@ -10,7 +10,7 @@ import { collection, query, where, onSnapshot } from "firebase/firestore";
 import Avatar from "react-avatar";
 import ThemeSwitcher from "./ThemeSwitcher";
 
-export const Sidebar = ({ isMobileOpen, onToggleMobile }) => {
+export const Sidebar = ({ isMobileOpen, onToggleMobile ,collapssed}) => {
   const [expandedMenus, setExpandedMenus] = useState({
     parametres: false,
   });
@@ -113,13 +113,13 @@ export const Sidebar = ({ isMobileOpen, onToggleMobile }) => {
       {/* Overlay mobile */}
       {isMobile && (
         <div
-          className={classNames("sidebar-overlay", { show: isMobileOpen })}
+          className={classNames("sidebar-overlay ", { show: isMobileOpen })}
           onClick={onToggleMobile}
         />
       )}
 
       {/* Sidebar principale */}
-      <div className={classNames("side-nav", { "mobile-open": isMobileOpen })}>
+      <div className={classNames("side-nav", { "mobile-open": isMobileOpen})}>
         <div className="side-nav-inner">
           {/* Profil utilisateur en haut */}
           <div className="user-profile-sidebar p-4 text-center">

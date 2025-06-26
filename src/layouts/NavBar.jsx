@@ -7,7 +7,7 @@ import { useNavigate, Link, useLocation, Navigate } from "react-router-dom";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../firebase";
 import Avatar from "react-avatar";
-export const Navbar = ({ onToggleSidebar }) => {
+export const Navbar = ({ onToggleSidebar, sidebarCollapsed, setSidebarCollapsed  }) => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -16,6 +16,7 @@ export const Navbar = ({ onToggleSidebar }) => {
   const notificationsRef = useRef(null);
   const profileRef = useRef(null);
   const navigate = useNavigate();
+ 
   const { logout, currentUser } = useAuth();
   // Récupération des infos utilisateur
   useEffect(() => {
@@ -86,13 +87,17 @@ export const Navbar = ({ onToggleSidebar }) => {
       )}
 
       {/* Logo */}
-      <div className="logo logo-dark">
-        <a href="/">
-          <img src={logo} alt="Logo" />
-        </a>
+      <div className="logo logo-dark d-none d-lg-flex align-items-center justify-content-center">
+         <img
+      src={logo}
+      alt="Logo"
+      style={{ height: "100px", width: "auto", objectFit: "contain" }} // adapte la taille
+    />
       </div>
 
       <div className="nav-wrap">
+       
+
         {/* Partie gauche - Barre de recherche */}
         <ul className="nav-left">
           <li className="search-bar-container ">
@@ -105,7 +110,7 @@ export const Navbar = ({ onToggleSidebar }) => {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
-              {searchQuery && (
+            {searchQuery && (
                 <button
                   className="clear-search"
                   onClick={() => setSearchQuery("")}

@@ -8,11 +8,11 @@ import logo from "../assets/images/logo/logo.png";
 import loginImage from "../assets/images/others/login-2.png";
 import { handleAuthError } from "../utils/AuthError";
 import Footer from "../components/footer";
-
+import { ForgotPasswordModal } from "../components/ResetPassword";
 export function LoginPage() {
-  const [credentials, setCredentials] = useState({ 
-    email: "", 
-    password: "" 
+  const [credentials, setCredentials] = useState({
+    email: "",
+    password: ""
   });
   const [error, setError] = useState("");
   const {
@@ -26,7 +26,7 @@ export function LoginPage() {
   const [googleError, setGoogleError] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
   const from = location.state?.from?.pathname || "/users";
-
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -80,14 +80,14 @@ export function LoginPage() {
   return (
     <div className="min-vh-100 d-flex flex-column">
       {/* Header */}
-      <header className="py-3 px-4 bg-white border-bottom">
-        <div className="container">
-          <img src={logo} alt="Logo" style={{ height: "40px" }} />
-        </div>
-      </header>
+     <header className="py-3 px-4 bg-white border-none">
+  <div className="container d-flex align-items-center justify-content-center" style={{ minHeight: "100px" }}>
+    <img src={logo} alt="Logo" style={{ height: "150px", maxWidth: "100%", objectFit: "contain" }} />
+  </div>
+</header>
 
       {/* Main Content */}
-      <main className="flex-grow-1 d-flex align-items-center py-5">
+      <main className="flex-grow-1 bg-white d-flex align-items-center py-5">
         <div className="container">
           <div className="row justify-content-center">
             <div className="col-lg-10 col-md-10">
@@ -95,21 +95,21 @@ export function LoginPage() {
                 <div className="row g-0">
                   {/* Left Side - Image (hidden on mobile) */}
                   <div className="col-md-6 d-none d-md-flex align-items-center bg-light">
-                    <img 
-                      className="img-fluid p-4" 
-                      src={loginImage} 
-                      alt="Login illustration" 
-                     
+                    <img
+                      className="img-fluid p-4"
+                      src={loginImage}
+                      alt="Login illustration"
+
                     />
                   </div>
-                  
+
                   {/* Right Side - Form */}
                   <div className="col-md-6">
                     <div className="card-body p-4 p-lg-5">
-                      <h2 className="text-center mb-4">Echat</h2>
-                      <h5 className="text-center text-muted mb-4">Sign In</h5>
+                     
+                      <h5 className="text-center mb-4">Sign In</h5>
                       <p className="text-center text-muted mb-4">Enter your credential to get access</p>
-                      
+
                       {/* Error Message */}
                       {(error || googleError) && (
                         <div className="alert alert-danger" role="alert">
@@ -139,7 +139,14 @@ export function LoginPage() {
                         <div className="mb-4">
                           <div className="d-flex justify-content-between align-items-center">
                             <label htmlFor="password" className="form-label">Password</label>
-                            <Link to="/forgot-password" className="text-decoration-none small">
+                            <Link
+                              to="#"
+                              className="text-decoration-none small"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                setShowForgotPassword(true);
+                              }}
+                            >
                               Forgot password?
                             </Link>
                           </div>
@@ -171,7 +178,7 @@ export function LoginPage() {
                           </button>
                         </div>
 
-                       
+
 
                         {/* Social Login Buttons */}
                         <div className="d-grid gap-3 d-flex justify-content-start mb-3">
@@ -203,9 +210,12 @@ export function LoginPage() {
           </div>
         </div>
       </main>
-
+  <ForgotPasswordModal 
+        show={showForgotPassword} 
+        onClose={() => setShowForgotPassword(false)} 
+      />
       {/* Footer */}
-     <Footer/>
+      <Footer />
     </div>
   );
 }

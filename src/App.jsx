@@ -7,6 +7,8 @@ import HomePage from "./pages/homePage.jsx";
 
 import Profil from "./pages/profil.jsx";
 import Users from "./pages/users.jsx";
+import { useEffect } from 'react';
+import 'bootstrap/dist/js/bootstrap.bundle.min';
 import "react-toastify/dist/ReactToastify.css";
 import "./assets/css/app.min.css";
 
@@ -17,8 +19,9 @@ import { ThemeProvider } from "./context/ThemeProvider.jsx";
 // ...le reste de vos imports...
 function App() {
   // const location=useLocation();
+  
   return (
-    <ThemeProvider>
+  
       <Router>
         <ToastContainer
           position="top-center"
@@ -54,7 +57,7 @@ function App() {
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </Router>
-    </ThemeProvider>
+  
   );
 }
 

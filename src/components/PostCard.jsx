@@ -815,6 +815,7 @@ const PostCard = ({ post, onDelete }) => {
 .image-modal .modal-content {
   background: transparent;
   border: none;
+  box-shadow: none !important;
 }
 
 .modal-image-container {

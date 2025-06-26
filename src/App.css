@@ -1,6 +1,5 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+
+
 #root {
   max-width: 1280px;
   margin: 0 auto;
@@ -29,7 +28,32 @@
     transform: rotate(360deg);
   }
 }
-
+.side-nav.collapsed {
+  width: 70px !important;
+  min-width: 70px !important;
+  transition: width 0.3s;
+}
+.side-nav.collapsed .side-nav-inner,
+.side-nav.collapsed .side-nav-content,
+.side-nav.collapsed .side-nav-menu.scrollable {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+.side-nav.collapsed .dropdown-toggle,
+.side-nav.collapsed .nav-link,
+.side-nav.collapsed .title,
+.side-nav.collapsed .arrow,
+.side-nav.collapsed .badge,
+.side-nav.collapsed .user-profile-sidebar,
+.side-nav.collapsed .friend-requests-container {
+  display: none !important;
+}
+.side-nav.collapsed .icon-holder {
+  margin: 0 auto !important;
+  font-size: 1.5rem;
+  display: block;
+  text-align: center;
+}
 @media (prefers-reduced-motion: no-preference) {
   a:nth-of-type(2) .logo {
     animation: logo-spin infinite 20s linear;

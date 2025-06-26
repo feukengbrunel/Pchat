@@ -13,30 +13,63 @@ function Profil() {
     const { currentUser } = useAuth();
     const [userData, setUserData] = useState(null);
     const [stats, setStats] = useState({
-        reactions: 0,
+        Amis: 0,
         likes: 0,
         bookmarks: 0,
         shares: 0
     });
-    useEffect(() => {
-        async function fetchUser() {
-            if (currentUser) {
-                const docRef = doc(db, "users", currentUser.uid);
-                const docSnap = await getDoc(docRef);
-                if (docSnap.exists()) {
-                    setUserData(docSnap.data());
-                }
-            }
-        }
-        fetchUser();
-    }, [currentUser]);
+  useEffect(() => {
+  async function fetchStats() {
+    if (!userId && !currentUser) return;
+    const uid = userId || currentUser.uid;
+
+    // Nombre d'amis
+    const userDoc = await getDoc(doc(db, "users", uid));
+    let amisCount = 0;
+    if (userDoc.exists()) {
+      const data = userDoc.data();
+      amisCount = typeof data.friendsCount === "number" ? data.friendsCount : 0;
+      console.log("Nombre d'amis:", amisCount);
+    }
+
+    // Nombre de likes et de favoris
+    const postsSnap = await getDocs(query(collection(db, "posts"), where("authorId", "==", uid)));
+    let likesCount = 0;
+    let bookmarksCount = 0;
+
+    for (const postDoc of postsSnap.docs) {
+      const data = postDoc.data();
+
+      // Likes via likeCount
+      if (typeof data.likeCount === "number") {
+        likesCount += data.likeCount;
+      }
+
+      // Likes via sous-collection reactions
+      const reactionsSnap = await getDocs(collection(db, "posts", postDoc.id, "reactions"));
+      likesCount += reactionsSnap.docs.filter(doc => doc.data().type === "LIKE").length;
+
+      // Favoris
+      if (Array.isArray(data.bookmarks)) {
+        bookmarksCount += data.bookmarks.length;
+      }
+    }
+
+    setStats({
+      Amis: amisCount,
+      likes: likesCount,
+      bookmarks: bookmarksCount,
+    });
+  }
+  fetchStats();
+}, [userId, currentUser]);
     useEffect(() => {
         async function fetchStats() {
             if (!userId) return;
             const q = query(collection(db, "posts"), where("authorId", "==", userId));
             const snap = await getDocs(q);
 
-            let totalReactions = 0;
+            let totalAmis = 0;
             let totalLikes = 0;
             let totalbookmarks = 0;
             let totalShares = 0;
@@ -45,10 +78,10 @@ function Profil() {
                 const data = doc.data();
 
 
-                if (data.reactionsCount) {
+                if (data.AmisCount) {
 
-                    totalReactions += Object.values(data.reactionsCount).reduce((a, b) => a + b, 0);
-                    totalLikes += data.reactionsCount.LIKE || 0;
+                    totalAmis += Object.values(data.AmisCount).reduce((a, b) => a + b, 0);
+                    totalLikes += data.AmisCount.LIKE || 0;
                 }
                 // bookmarks (tableau d'uid ou nombre)
                 if (Array.isArray(data.bookmarks)) {
@@ -63,7 +96,7 @@ function Profil() {
             });
 
             setStats({
-                reactions: totalReactions,
+                Amis: totalAmis,
                 likes: totalLikes,
                 bookmarks: totalbookmarks,
                 shares: totalShares

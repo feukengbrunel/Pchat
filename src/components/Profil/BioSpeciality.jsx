@@ -32,8 +32,8 @@ const BioAndSpecialty = ({ bio, specialties, stats }) => {
       <div className="row w-100">
         <div className="col-6 stat-item text-center mb-4">
          
-          <span className="d-block font-weight-bold" style={{ fontSize: 22 }}>{stats?.reactions ?? 0}<span className="anticon anticon-smile text-primary ml-1" style={{ fontSize: 22}}></span></span>
-          <small className="text-muted"> Réactions reçues</small>
+          <span className="d-block font-weight-bold" style={{ fontSize: 22 }}>{stats?.Amis ?? 0}<span className="anticon anticon-smile text-primary ml-1" style={{ fontSize: 22}}></span></span>
+          <small className="text-muted">Nombre d'amis</small>
         </div>
         <div className="col-6 stat-item text-center mb-4">
          

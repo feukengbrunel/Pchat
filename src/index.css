@@ -1,9 +1,10 @@
 
 /* Vous pouvez ajouter des styles personnalisés ici */
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+
 :root {
+  --body_background: white;
+  --body_color: #000;
+  --link_color: navy;
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
@@ -17,7 +18,11 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
-
+[dqtq-theme='dark'] {
+  --body_background: #282c34;
+  --body_color: #fff;
+  --link_color: #61dafb;
+}
 a {
   font-weight: 500;
   color: #646cff;
