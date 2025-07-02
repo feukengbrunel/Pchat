@@ -8,7 +8,7 @@ import classNames from "classnames";
 import FriendRequestsSidebar from "../components/FreindRequestSidebar";
 import { collection, query, where, onSnapshot } from "firebase/firestore";
 import Avatar from "react-avatar";
-import ThemeSwitcher from "./ThemeSwitcher";
+
 
 export const Sidebar = ({ isMobileOpen, onToggleMobile ,collapssed}) => {
   const [expandedMenus, setExpandedMenus] = useState({
@@ -266,12 +266,7 @@ export const Sidebar = ({ isMobileOpen, onToggleMobile ,collapssed}) => {
                       Confidentialité
                     </Link>
                   </li>
-                  <li>
-                    <Link to="" className="nav-link">
-                      <ThemeSwitcher/>
-                    </Link>
-                   
-                  </li>
+                 
                 </ul>
               </li>
 

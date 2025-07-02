@@ -158,7 +158,7 @@ export const Navbar = ({ onToggleSidebar, sidebarCollapsed, setSidebarCollapsed 
                 <p className="text-dark font-weight-semibold m-b-0">
                   <i className="anticon anticon-bell"></i>
                   <div className="bg-white dark:bg-gray-900">
-  {/* ... */}hhh
+  
 </div>
                   <span className="m-l-10">Notifications</span>
                 </p>

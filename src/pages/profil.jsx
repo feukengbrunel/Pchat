@@ -18,92 +18,59 @@ function Profil() {
         bookmarks: 0,
         shares: 0
     });
-  useEffect(() => {
-  async function fetchStats() {
-    if (!userId && !currentUser) return;
-    const uid = userId || currentUser.uid;
-
-    // Nombre d'amis
-    const userDoc = await getDoc(doc(db, "users", uid));
-    let amisCount = 0;
-    if (userDoc.exists()) {
-      const data = userDoc.data();
-      amisCount = typeof data.friendsCount === "number" ? data.friendsCount : 0;
-      console.log("Nombre d'amis:", amisCount);
-    }
-
-    // Nombre de likes et de favoris
-    const postsSnap = await getDocs(query(collection(db, "posts"), where("authorId", "==", uid)));
-    let likesCount = 0;
-    let bookmarksCount = 0;
-
-    for (const postDoc of postsSnap.docs) {
-      const data = postDoc.data();
-
-      // Likes via likeCount
-      if (typeof data.likeCount === "number") {
-        likesCount += data.likeCount;
-      }
-
-      // Likes via sous-collection reactions
-      const reactionsSnap = await getDocs(collection(db, "posts", postDoc.id, "reactions"));
-      likesCount += reactionsSnap.docs.filter(doc => doc.data().type === "LIKE").length;
-
-      // Favoris
-      if (Array.isArray(data.bookmarks)) {
-        bookmarksCount += data.bookmarks.length;
-      }
-    }
-
-    setStats({
-      Amis: amisCount,
-      likes: likesCount,
-      bookmarks: bookmarksCount,
-    });
-  }
-  fetchStats();
-}, [userId, currentUser]);
-    useEffect(() => {
+     useEffect(() => {
         async function fetchStats() {
-            if (!userId) return;
-            const q = query(collection(db, "posts"), where("authorId", "==", userId));
-            const snap = await getDocs(q);
+            const uid = userId || currentUser?.uid;
+            if (!uid) return;
 
-            let totalAmis = 0;
-            let totalLikes = 0;
-            let totalbookmarks = 0;
-            let totalShares = 0;
+            // Nombre d'amis
+            const userDoc = await getDoc(doc(db, "users", uid));
+            let amisCount = 0;
+            if (userDoc.exists()) {
+                const data = userDoc.data();
+                amisCount = typeof data.friendsCount === "number" ? data.friendsCount : 0;
+            }
 
-            snap.forEach(doc => {
-                const data = doc.data();
+            // Nombre de likes, favoris, partages
+            const postsSnap = await getDocs(query(collection(db, "posts"), where("authorId", "==", uid)));
+            let likesCount = 0;
+            let bookmarksCount = 0;
+            let sharesCount = 0;
 
+            for (const postDoc of postsSnap.docs) {
+                const data = postDoc.data();
 
-                if (data.AmisCount) {
-
-                    totalAmis += Object.values(data.AmisCount).reduce((a, b) => a + b, 0);
-                    totalLikes += data.AmisCount.LIKE || 0;
+                // Likes via likeCount
+                if (typeof data.likeCount === "number") {
+                    likesCount += data.likeCount;
                 }
-                // bookmarks (tableau d'uid ou nombre)
+
+                // Likes via sous-collection reactions
+                const reactionsSnap = await getDocs(collection(db, "posts", postDoc.id, "reactions"));
+                likesCount += reactionsSnap.docs.filter(doc => doc.data().type === "LIKE").length;
+
+                // Favoris
                 if (Array.isArray(data.bookmarks)) {
-                    totalbookmarks += data.bookmarks.length;
+                    bookmarksCount += data.bookmarks.length;
                 } else if (typeof data.bookmarks === "number") {
-                    totalbookmarks += data.bookmarks;
+                    bookmarksCount += data.bookmarks;
                 }
 
+                // Partages
                 if (typeof data.shares === "number") {
-                    totalShares += data.shares;
+                    sharesCount += data.shares;
                 }
-            });
+            }
 
             setStats({
-                Amis: totalAmis,
-                likes: totalLikes,
-                bookmarks: totalbookmarks,
-                shares: totalShares
+                Amis: amisCount,
+                likes: likesCount,
+                bookmarks: bookmarksCount,
+                shares: sharesCount
             });
         }
         fetchStats();
-    }, [userId]);
+    }, [userId, currentUser]);
     return (
         <div>
             <ProfilHeader />

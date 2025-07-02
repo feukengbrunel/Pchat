@@ -32,6 +32,6 @@ const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 setPersistence(auth, browserLocalPersistence);
 export const db = getFirestore(app);
+export const database = getDatabase(app);
 export const storage = getStorage(app);
 export const googleProvider = new GoogleAuthProvider();
-export const rtdb = getDatabase(app); // Real-time Database

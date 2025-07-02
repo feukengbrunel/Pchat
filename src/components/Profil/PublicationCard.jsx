@@ -61,8 +61,8 @@ const PublicationCard = ({ publication, isCurrentUser }) => {
         
         <div className="d-flex justify-content-between align-items-center">
           <div className="tags-container">
-            {publication.tags.map(tag => (
-              <span key={tag} className="badge bg-light text-dark me-2">
+            {publication.tags.map((tag,idx) => (
+              <span key={tag+'-'+idx} className="badge bg-light text-dark me-2">
                 {tag}
               </span>
             ))}

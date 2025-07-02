@@ -34,6 +34,7 @@ export function useAuth() {
  */
 export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null);
+   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -48,6 +49,7 @@ export function AuthProvider({ children }) {
         await setPersistence(auth, browserLocalPersistence);
         const unsubscribe = onAuthStateChanged(auth, (user) => {
           setCurrentUser(user);
+          setUser(user);
           setLoading(false);
         });
         return unsubscribe;
@@ -159,6 +161,7 @@ const handleGoogleSignup = async () => {
   // Valeur du contexte
   const value = {
     currentUser,
+    user,
     loading,
     error,
     login,

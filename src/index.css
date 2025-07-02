@@ -119,3 +119,22 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+
+/* Responsive pour la messagerie */
+/* ...existing code... */
+
+.chat-list-item .badge.bg-danger {
+  top: 0;
+  right: 0;
+  left: auto;
+  transform: translate(50%, -50%);
+  position: absolute;
+  font-size: 0.75rem;
+  min-width: 20px;
+  min-height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 6px;
+  z-index: 2;
+}

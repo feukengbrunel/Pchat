@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Carousel, Image, Modal, OverlayTrigger, Tooltip } from "react-bootstrap";
+import { Carousel, Dropdown, Image, Modal, OverlayTrigger, Tooltip } from "react-bootstrap";
 import {
   FaHeart,
   FaRegHeart,
@@ -50,7 +50,41 @@ const PostCard = ({ post, onDelete }) => {
       }
     });
   }, [post.authorId]);
+useEffect(() => {
+  let isMounted = true;
 
+  const fetchAuthorAvatar = async () => {
+    if (!post.authorId || !isMounted) return;
+    
+    try {
+      const snap = await getDoc(doc(db, "users", post.authorId));
+      if (isMounted && snap.exists()) {
+        setAuthorAvatar(snap.data().photoURL);
+      }
+    } catch (error) {
+      if (isMounted) console.error("Error fetching author avatar:", error);
+    }
+  };
+
+  fetchAuthorAvatar();
+
+  return () => {
+    isMounted = false;
+  };
+}, [post.authorId]);
+useEffect(() => {
+  let isMounted = true;
+  const currentObserver = observer.current;
+
+  if (postRef.current && isMounted) {
+    currentObserver?.observe(postRef.current);
+  }
+
+  return () => {
+    isMounted = false;
+    currentObserver?.disconnect();
+  };
+}, []);
   // Observer pour le lazy loading
   useEffect(() => {
     if (observer.current) observer.current.disconnect();
@@ -261,7 +295,7 @@ const PostCard = ({ post, onDelete }) => {
       <div className={`image-grid grid-${Math.min(post.images.length, 4)}`}>
         {post.images.slice(0, 4).map((img, index) => (
           <div
-            key={index}
+            key={img + index}
             className="grid-item"
             onClick={() => handleImageClick(index)}
           >
@@ -288,57 +322,62 @@ const PostCard = ({ post, onDelete }) => {
       {/* En-tête du post */}
       <div className="post-header">
         <div className="author-info">
-        
-          {authorAvatar? (
-                <img
-                  src={authorAvatar || "/assets/images/avatars/thumb-3.jpg"}
-                  alt="Profile"
-                  className="author-avatar"
-                />
-              ) :
-                (
-                  <Avatar
-                    name={post.authorName}
-                    size="36"
-                    round
-                    className="border"
-                  />
-                )}
+
+          {authorAvatar ? (
+            <img
+              src={authorAvatar || "/assets/images/avatars/thumb-3.jpg"}
+              alt="Profile"
+              className="author-avatar"
+            />
+          ) :
+            (
+              <Avatar
+                name={post.authorName}
+                size="36"
+                round
+                className="border"
+              />
+            )}
           <div>
             <h4 className="author-name">{post.authorName}</h4>
             <span className="post-date">{formatDate(post.createdAt)}</span>
           </div>
         </div>
         {/* Dropdown placé ici, à droite */}
-        <div className="dropdown dropdown-animated scale-left post-actions-dropdown">
-          <button
-            type="button"
-            className="btn btn-default dropdown-toggle"
-            onClick={() => setShowDropdown((v) => !v)}
+        <Dropdown
+          show={showDropdown}
+          onToggle={(isOpen) => setShowDropdown(isOpen)}
+        >
+          <Dropdown.Toggle
+            as="button"
+            className="btn btn-default"
+            id="post-actions-dropdown"
           >
+          
+          </Dropdown.Toggle>
 
-          </button>
-          <div className={`dropdown-menu${showDropdown ? " show" : ""}`}>
-            <button
-              className="dropdown-item"
-              type="button"
-              onClick={handleBookmark}
-            >
-              {isBookmarked ? <FaBookmark className="text-primary" /> : <FaRegBookmark className="text-primary" />}
-              {isBookmarked ? " Retirer des favoris" : " Ajouter aux favoris"}
-            </button>
+          <Dropdown.Menu>
+            <Dropdown.Item onClick={handleBookmark}>
+              {isBookmarked ? (
+                <>
+                  <FaBookmark className="text-primary mr-2" />
+                  Retirer des favoris
+                </>
+              ) : (
+                <>
+                  <FaRegBookmark className="text-primary mr-2" />
+                  Ajouter aux favoris
+                </>
+              )}
+            </Dropdown.Item>
             {auth.currentUser?.uid === post.authorId && (
-              <button
-                className="dropdown-item text-danger"
-                type="button"
-                onClick={handleDelete}
-              >
-                <FaTrash style={{ marginRight: 8 }} />
+              <Dropdown.Item onClick={handleDelete} className="text-danger">
+                <FaTrash className="mr-2" />
                 Supprimer
-              </button>
+              </Dropdown.Item>
             )}
-          </div>
-        </div>
+          </Dropdown.Menu>
+        </Dropdown>
       </div>
 
 
@@ -399,7 +438,7 @@ const PostCard = ({ post, onDelete }) => {
 
       {/* Actions principales */}
       <div className="post-actions-bar">
-        
+
         <ReactionSelector
           className="action-btn border-none"
           currentReaction={userReaction}
@@ -929,6 +968,17 @@ const PostCard = ({ post, onDelete }) => {
     height: 36px;
   }
 }
+  .post-actions-dropdown {
+    position: relative;
+    display: inline-block;
+  }
+
+  .dropdown-toggle {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+  }
       `}</style>
     </div>
   );
