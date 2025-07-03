@@ -7,6 +7,7 @@ import { toast } from "react-toastify";
 import logo from "../assets/images/logo/logo.png";
 import loginImage from "../assets/images/others/login-2.png";
 import { handleAuthError } from "../utils/AuthError";
+import { getAuthErrorMessage } from "../services/getAuthErrorMessage";
 import Footer from "../components/footer";
 import { ForgotPasswordModal } from "../components/ResetPassword";
 export function LoginPage() {
@@ -36,8 +37,8 @@ export function LoginPage() {
       toast.success("Login successful!");
       setTimeout(() => navigate(from, { replace: true }), 800);
     } catch (err) {
-      setError(handleAuthError(err));
-      toast.error(handleAuthError(err));
+      setError(getAuthErrorMessage(err));
+toast.error(getAuthErrorMessage(err));
     } finally {
       setActionLoading(false);
     }
@@ -50,9 +51,8 @@ export function LoginPage() {
       toast.success("Google login successful!");
       setTimeout(() => navigate(from, { replace: true }), 800);
     } catch (err) {
-      const errorMsg = handleAuthError(err);
-      setGoogleError(errorMsg);
-      toast.error(errorMsg);
+setError(getAuthErrorMessage(err));
+toast.error(getAuthErrorMessage(err));
     } finally {
       setActionLoading(false);
     }
@@ -65,8 +65,8 @@ export function LoginPage() {
       toast.success("Facebook login successful!");
       navigate(from, { replace: true });
     } catch (err) {
-      setError(handleAuthError(err));
-      toast.error(handleAuthError(err));
+setError(getAuthErrorMessage(err));
+toast.error(getAuthErrorMessage(err));
     } finally {
       setActionLoading(false);
     }
@@ -220,4 +220,4 @@ export function LoginPage() {
   );
 }
 
-//code by sukali
+

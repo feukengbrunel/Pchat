@@ -7,16 +7,18 @@ import { useNavigate, Link, useLocation, Navigate } from "react-router-dom";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../firebase";
 import Avatar from "react-avatar";
-export const Navbar = ({ onToggleSidebar, sidebarCollapsed, setSidebarCollapsed  }) => {
+import { HelpModal } from "../components/Help";
+export const Navbar = ({ onToggleSidebar, sidebarCollapsed, setSidebarCollapsed }) => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [isMobile, setIsMobile] = useState(false);
   const [userData, setUserData] = useState(null);
+  const [showHelp, setShowHelp]=useState(false);
   const notificationsRef = useRef(null);
   const profileRef = useRef(null);
   const navigate = useNavigate();
- 
+
   const { logout, currentUser } = useAuth();
   // Récupération des infos utilisateur
   useEffect(() => {
@@ -88,15 +90,15 @@ export const Navbar = ({ onToggleSidebar, sidebarCollapsed, setSidebarCollapsed 
 
       {/* Logo */}
       <div className="logo logo-dark d-none d-lg-flex align-items-center justify-content-center">
-         <img
-      src={logo}
-      alt="Logo"
-      style={{ height: "100px", width: "auto", objectFit: "contain" }} // adapte la taille
-    />
+        <img
+          src={logo}
+          alt="Logo"
+          style={{ height: "100px", width: "auto", objectFit: "contain" }} // adapte la taille
+        />
       </div>
 
       <div className="nav-wrap">
-       
+
 
         {/* Partie gauche - Barre de recherche */}
         <ul className="nav-left">
@@ -110,7 +112,7 @@ export const Navbar = ({ onToggleSidebar, sidebarCollapsed, setSidebarCollapsed 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
-            {searchQuery && (
+              {searchQuery && (
                 <button
                   className="clear-search"
                   onClick={() => setSearchQuery("")}
@@ -158,8 +160,8 @@ export const Navbar = ({ onToggleSidebar, sidebarCollapsed, setSidebarCollapsed 
                 <p className="text-dark font-weight-semibold m-b-0">
                   <i className="anticon anticon-bell"></i>
                   <div className="bg-white dark:bg-gray-900">
-  
-</div>
+
+                  </div>
                   <span className="m-l-10">Notifications</span>
                 </p>
                 <button className="btn-sm btn-default btn">
@@ -306,11 +308,15 @@ export const Navbar = ({ onToggleSidebar, sidebarCollapsed, setSidebarCollapsed 
                   <i className="anticon font-size-10 anticon-right"></i>
                 </div>
               </a>
-              <a href="#" className="dropdown-item d-block p-h-15 p-v-10">
+              <a href="#" className="dropdown-item d-block p-h-15 p-v-10"  onClick={(e) => {
+                                e.preventDefault();
+                                setShowHelp(true);
+                              }}>
                 <div className="d-flex align-items-center justify-content-between">
                   <div>
                     <i className="anticon opacity-04 font-size-16 anticon-question"></i>
-                    <span className="m-l-10">Aide</span>
+                    <span className="m-l-10" >Aide</span>
+                   
                   </div>
                   <i className="anticon font-size-10 anticon-right"></i>
                 </div>
@@ -337,6 +343,7 @@ export const Navbar = ({ onToggleSidebar, sidebarCollapsed, setSidebarCollapsed 
             </div>
           </li>
         </ul>
+         <HelpModal show={showHelp} onClose={() => setShowHelp(false)} />
       </div>
 
       {/* CSS supplémentaire */}

@@ -111,15 +111,30 @@ export const Sidebar = ({ isMobileOpen, onToggleMobile ,collapssed}) => {
   return (
     <>
       {/* Overlay mobile */}
-      {isMobile && (
+     {isMobile && isMobileOpen && (
         <div
-          className={classNames("sidebar-overlay ", { show: isMobileOpen })}
+          className="sidebar-overlay"
           onClick={onToggleMobile}
         />
       )}
 
-      {/* Sidebar principale */}
-      <div className={classNames("side-nav", { "mobile-open": isMobileOpen})}>
+      {/* Sidebar principale - correction des classes */}
+      <div
+        className={classNames(
+          isMobile ? "side-nav-mobile" : "side-nav",
+          { "mobile-open": isMobile && isMobileOpen }
+        )}
+      >
+        <div className="side-nav-inner">
+          {/* Ajout d'un bouton de fermeture pour mobile */}
+          {isMobile && (
+            <button 
+              className="sidebar-close-btn"
+              onClick={onToggleMobile}
+            >
+              <i className="anticon anticon-close"></i>
+            </button>
+          )}
         <div className="side-nav-inner">
           {/* Profil utilisateur en haut */}
           <div className="user-profile-sidebar p-4 text-center">
@@ -276,32 +291,40 @@ export const Sidebar = ({ isMobileOpen, onToggleMobile ,collapssed}) => {
           </div>
 
           {/* Bouton de déconnexion */}
-          <div className="px-3 py-4">
+          {/* <div className="px-3 py-4">
             <button
               className="btn btn-outline-danger btn-sm w-100"
               onClick={handleLogout}
             >
               <i className="anticon anticon-logout mr-2"></i> Déconnexion
             </button>
-          </div>
+          </div> */}
         </div>
       </div>
-
+</div>
+      
       {/* Styles CSS */}
       <style jsx>{`
-        .side-nav {
+       
+       
+  
+        .side-nav-mobile {
           position: fixed;
+          top: 0;
           left: 0;
           height: 100vh;
-          width: 280px;
-          background: white;
-          box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-          z-index: 1000;
+          width: 260px;
+          background: #fff;
+          z-index: 1100;
+          transform: translateX(-100%);
           transition: transform 0.3s ease;
-          display: flex;
-          flex-direction: column;
+          box-shadow: 2px 0 15px rgba(0,0,0,0.2);
         }
-        
+
+        .side-nav-mobile.mobile-open {
+          transform: translateX(0);
+        }
+
         .sidebar-overlay {
           position: fixed;
           top: 0;
@@ -309,10 +332,25 @@ export const Sidebar = ({ isMobileOpen, onToggleMobile ,collapssed}) => {
           right: 0;
           bottom: 0;
           background: rgba(0, 0, 0, 0.5);
-          z-index: 999;
-          opacity: 0;
-          visibility: hidden;
-          transition: all 0.3s ease;
+          z-index: 1050;
+          opacity: 1;
+          transition: opacity 0.3s ease;
+        }
+
+        .sidebar-close-btn {
+          position: absolute;
+          top: 10px;
+          right: 10px;
+          background: none;
+          border: none;
+          font-size: 1.5rem;
+          color: #6c757d;
+          cursor: pointer;
+          z-index: 10;
+        }
+
+        .sidebar-close-btn:hover {
+          color: #495057;
         }
         
         .sidebar-overlay.show {

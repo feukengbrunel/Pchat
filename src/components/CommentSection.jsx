@@ -9,13 +9,14 @@ import {
     onSnapshot
 } from 'firebase/firestore';
 import { db, auth } from '../firebase';
-import { FaTimes, FaPaperPlane, FaReply, FaEdit, FaTrash, FaEllipsisH, FaHeart, FaRegHeart } from 'react-icons/fa';
+import { FaTimes, FaPaperPlane, FaReply, FaEdit, FaTrash, FaEllipsisH, FaHeart, FaRegHeart, FaCommentSlash } from 'react-icons/fa';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useAuth } from '../hooks/useAuth';
 import Dropdown from 'react-bootstrap/Dropdown';
 import Avatar from 'react-avatar';
 import CommentSkeleton from './CommentSkeleton';
+import { ClipLoader } from 'react-spinners';
 
 
 const CommentSection = ({ postId, onClose, onCommentAdded, onCommentDeleted }) => {
@@ -162,8 +163,8 @@ const CommentSection = ({ postId, onClose, onCommentAdded, onCommentDeleted }) =
     };
 
     const loadMoreComments = async () => {
-        if (!setHasMore || loading) return;
-         if (!comments.length) return; // Ne pas charger si pas de commentaires
+        if (!hasMore || loading) return;
+        if (!comments.length) return; // Ne pas charger si pas de commentaires
         setLoading(true);
         const lastComment = comments[comments.length - 1];
 
@@ -192,7 +193,7 @@ const CommentSection = ({ postId, onClose, onCommentAdded, onCommentDeleted }) =
 
         setComments([...comments, ...newComments]);
         setLoading(false);
-        hasMore(newComments.length >= 10);
+        setHasMore(newComments.length >= 10);
     };
 
     useEffect(() => {
@@ -205,7 +206,6 @@ const CommentSection = ({ postId, onClose, onCommentAdded, onCommentDeleted }) =
         <div className="comment-section-container">
             <div className="comment-section-header">
                 <h5>Commentaires</h5>
-               
             </div>
 
             <div
@@ -213,13 +213,19 @@ const CommentSection = ({ postId, onClose, onCommentAdded, onCommentDeleted }) =
                 className="comments-list-container"
             >
                 {loading && comments.length === 0 ? (
-                    <>
+                    <div className="comments-loading">
                         <CommentSkeleton />
                         <CommentSkeleton />
                         <CommentSkeleton />
-                    </>
+                    </div>
                 ) : comments.length === 0 ? (
-                    <p className="no-comments">Soyez le premier à commenter</p>
+                    <div className="empty-comments">
+                        <div className="empty-comments-icon">
+                            <FaCommentSlash />
+                        </div>
+                        <h4>Aucun commentaire</h4>
+                        <p>Soyez le premier à participer à la conversation !</p>
+                    </div>
                 ) : (
                     comments.map((comment) => (
                         <CommentItem
@@ -240,11 +246,11 @@ const CommentSection = ({ postId, onClose, onCommentAdded, onCommentDeleted }) =
 
                 {loading && comments.length > 0 && (
                     <div className="loading-more">
-                        <div className="spinner" role="status"></div>
+                        <ClipLoader color="#4a6cf7" size={30} />
                     </div>
                 )}
 
-                {setHasMore && !loading && (
+                {hasMore && !loading && comments.length > 0 && (
                     <button
                         className="load-more-btn"
                         onClick={loadMoreComments}
@@ -257,10 +263,10 @@ const CommentSection = ({ postId, onClose, onCommentAdded, onCommentDeleted }) =
             </div>
 
             <form onSubmit={handleSubmit} className="comment-form">
-                <div className="form-group">
+                <div className="form-group comment-input-row">
                     <input
                         type="text"
-                        className="form-control"
+                        className="form-control comment-input"
                         placeholder={
                             replyingTo
                                 ? `Réponse à ${comments.find(c => c.id === replyingTo)?.authorName}...`
@@ -271,7 +277,7 @@ const CommentSection = ({ postId, onClose, onCommentAdded, onCommentDeleted }) =
                     />
                     <button
                         type="submit"
-                        className="submit-btn"
+                        className="submit-btn comment-send-btn"
                         disabled={!newComment.trim()}
                     >
                         <FaPaperPlane />
@@ -290,6 +296,223 @@ const CommentSection = ({ postId, onClose, onCommentAdded, onCommentDeleted }) =
                     </div>
                 )}
             </form>
+
+            <style jsx>{`
+                .comment-section-container {
+                    background: #fff;
+                    border-radius: 0 0 12px 12px;
+                    padding: 16px;
+                    font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+                }
+
+                .comment-section-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 16px;
+                    padding-bottom: 12px;
+                    border-bottom: 1px solid #eaeaea;
+                }
+
+                .comment-section-header h5 {
+                    font-size: 1.1rem;
+                    font-weight: 600;
+                    color: #333;
+                    margin: 0;
+                }
+
+                .comments-list-container {
+                    max-height: 500px;
+                    min-height: 150px;
+                    overflow-y: auto;
+                    margin-bottom: 16px;
+                    border-radius: 10px;
+                    background: #f8f9fa;
+                    padding: 8px;
+                    scrollbar-width: thin;
+                }
+
+                .comments-list-container::-webkit-scrollbar {
+                    width: 6px;
+                }
+
+                .comments-list-container::-webkit-scrollbar-track {
+                    background: #f1f1f1;
+                    border-radius: 10px;
+                }
+
+                .comments-list-container::-webkit-scrollbar-thumb {
+                    background: #ccc;
+                    border-radius: 10px;
+                }
+
+                .comments-list-container::-webkit-scrollbar-thumb:hover {
+                    background: #aaa;
+                }
+
+                .comments-loading {
+                    padding: 12px;
+                }
+
+                .empty-comments {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 40px 20px;
+                    text-align: center;
+                    color: #6c757d;
+                    background: #fff;
+                    border-radius: 12px;
+                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+                    min-height: 200px;
+                }
+
+                .empty-comments-icon {
+                    font-size: 2.5rem;
+                    color: #dee2e6;
+                    margin-bottom: 16px;
+                }
+
+                .empty-comments h4 {
+                    font-size: 1.2rem;
+                    font-weight: 600;
+                    margin-bottom: 8px;
+                    color: #495057;
+                }
+
+                .empty-comments p {
+                    font-size: 0.95rem;
+                    color: #6c757d;
+                    margin: 0;
+                }
+
+                .loading-more {
+                    display: flex;
+                    justify-content: center;
+                    padding: 16px 0;
+                }
+
+                .load-more-btn {
+                    background: none;
+                    border: 1px solid #e0e0e0;
+                    color: #4a6cf7;
+                    font-size: 0.9rem;
+                    font-weight: 500;
+                    padding: 8px 16px;
+                    border-radius: 20px;
+                    cursor: pointer;
+                    width: 100%;
+                    margin-top: 8px;
+                    transition: all 0.2s ease;
+                }
+
+                .load-more-btn:hover {
+                    background: #f0f2ff;
+                    border-color: #4a6cf7;
+                }
+
+                .comment-form {
+                    margin-top: 16px;
+                }
+
+                .comment-input-row {
+                    display: flex;
+                    gap: 10px;
+                    align-items: center;
+                }
+
+                .comment-input {
+                    flex: 1;
+                    border: 1px solid #e0e0e0;
+                    border-radius: 24px;
+                    padding: 10px 16px;
+                    font-size: 14px;
+                    background: #f8f9fa;
+                    transition: all 0.2s ease;
+                }
+
+                .comment-input:focus {
+                    background: #fff;
+                    border-color: #4a6cf7;
+                    box-shadow: 0 0 0 3px rgba(74, 108, 247, 0.1);
+                    outline: none;
+                }
+
+                .comment-send-btn {
+                    background: #4a6cf7;
+                    color: white;
+                    border: none;
+                    border-radius: 50%;
+                    width: 40px;
+                    height: 40px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                    flex-shrink: 0;
+                }
+
+                .comment-send-btn:hover:not(:disabled) {
+                    background: #3a5bd9;
+                    transform: scale(1.05);
+                }
+
+                .comment-send-btn:disabled {
+                    background: #c0c0c0;
+                    cursor: not-allowed;
+                }
+
+                .replying-to {
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    font-size: 0.85rem;
+                    color: #6c757d;
+                    margin-top: 8px;
+                    padding: 4px 12px;
+                    background: #f8f9fa;
+                    border-radius: 12px;
+                    width: fit-content;
+                }
+
+                .cancel-reply {
+                    background: none;
+                    border: none;
+                    color: #4a6cf7;
+                    font-size: 0.85rem;
+                    cursor: pointer;
+                    padding: 0;
+                    margin-left: 8px;
+                }
+
+                .cancel-reply:hover {
+                    text-decoration: underline;
+                }
+
+                @media (max-width: 576px) {
+                    .comment-section-container {
+                        padding: 12px;
+                    }
+
+                    .comments-list-container {
+                        min-height: 120px;
+                    }
+
+                    .empty-comments {
+                        padding: 30px 12px;
+                    }
+
+                    .empty-comments-icon {
+                        font-size: 2rem;
+                    }
+
+                    .comment-input {
+                        font-size: 13px;
+                    }
+                }
+            `}</style>
         </div>
     );
 };
@@ -309,10 +532,32 @@ const CommentItem = memo(({
     const [editContent, setEditContent] = useState(comment.content);
     const [isLiked, setIsLiked] = useState((comment.likes || []).includes(currentUserId));
     const likeCount = (comment.likes || []).length;
+    const [showDropdown, setShowDropdown] = useState(false);
+    const dropdownRef = useRef(null);
+    const buttonRef = useRef(null);
 
     useEffect(() => {
         setIsLiked((comment.likes || []).includes(currentUserId));
     }, [comment.likes, currentUserId]);
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (buttonRef.current && buttonRef.current.contains(event.target)) {
+                return;
+            }
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                setShowDropdown(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    const toggleDropdown = (e) => {
+        e.stopPropagation();
+        setShowDropdown(!showDropdown);
+    };
 
     const handleSave = () => {
         onSaveEdit(comment.id, editContent);
@@ -328,82 +573,97 @@ const CommentItem = memo(({
                     round
                 />
             </div>
-            <div className="comment-content">
-                <div className="comment-header">
-                    <div className="comment-author">{comment.authorName}</div>
-                    <div className="comment-actions">
-                        <Dropdown align="end">
-                            <Dropdown.Toggle
+            <div className="comment-content-wrapper">
+                <div className="comment-content">
+                    <div className="comment-header">
+                        <div className="comment-author">{comment.authorName}</div>
+                        <div className="comment-actions" ref={dropdownRef}>
+                            <button
+                                ref={buttonRef}
                                 className="action-menu"
-                                variant="link"
-                                id={`dropdown-comment-${comment.id}`}
-                                style={{
-                                    boxShadow: "none",
-                                    border: "none",
-                                    background: "none",
-                                    padding: 0,
-                                    color: "#888",
-                                    fontSize: "1.1rem",
-                                    lineHeight: 1,
-                                }}
+                                onClick={toggleDropdown}
                             >
                                 <FaEllipsisH />
-                            </Dropdown.Toggle>
-                            <Dropdown.Menu className="comment-dropdown-menu">
-                                <Dropdown.Item onClick={onReply} className="d-flex align-items-center">
-                                    <FaReply className="me-2 text-primary" /> Répondre
-                                </Dropdown.Item>
-                                {isOwn && (
-                                    <>
-                                        <Dropdown.Item onClick={onEdit} className="d-flex align-items-center">
-                                            <FaEdit className="me-2 text-warning" /> Modifier
-                                        </Dropdown.Item>
-                                        <Dropdown.Item onClick={onDelete} className="d-flex align-items-center">
-                                            <FaTrash className="me-2 text-danger" /> Supprimer
-                                        </Dropdown.Item>
-                                    </>
-                                )}
-                            </Dropdown.Menu>
-                        </Dropdown>
-                    </div>
-                </div>
-
-                {comment.replyTo && (
-                    <div className="reply-mention">
-                        En réponse à @{comment.replyToName || 'utilisateur'}
-                    </div>
-                )}
-
-                {isEditing ? (
-                    <div className="edit-form">
-                        <input
-                            type="text"
-                            className="edit-input"
-                            value={editContent}
-                            onChange={(e) => setEditContent(e.target.value)}
-                            autoFocus
-                        />
-                        <div className="edit-actions">
-                            <button
-                                className="save-btn"
-                                onClick={handleSave}
-                            >
-                                Enregistrer
                             </button>
-                            <button
-                                className="cancel-btn"
-                                onClick={() => {
-                                    onCancelEdit();
-                                    setEditContent(comment.content);
-                                }}
-                            >
-                                Annuler
-                            </button>
+                            
+                            {showDropdown && (
+                                <div className="dropdown-menu show">
+                                    <button
+                                        className="dropdown-item"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            onReply();
+                                            setShowDropdown(false);
+                                        }}
+                                    >
+                                        <FaReply className="icon" /> Répondre
+                                    </button>
+                                    {isOwn && (
+                                        <>
+                                            <button
+                                                className="dropdown-item"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    onEdit();
+                                                    setShowDropdown(false);
+                                                }}
+                                            >
+                                                <FaEdit className="icon" /> Modifier
+                                            </button>
+                                            <button
+                                                className="dropdown-item"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    onDelete();
+                                                    setShowDropdown(false);
+                                                }}
+                                            >
+                                                <FaTrash className="icon" /> Supprimer
+                                            </button>
+                                        </>
+                                    )}
+                                </div>
+                            )}
                         </div>
                     </div>
-                ) : (
-                    <div className="comment-text">{comment.content}</div>
-                )}
+
+                    {comment.replyTo && (
+                        <div className="reply-mention">
+                            En réponse à @{comment.replyToName || 'utilisateur'}
+                        </div>
+                    )}
+
+                    {isEditing ? (
+                        <div className="edit-form">
+                            <input
+                                type="text"
+                                className="edit-input"
+                                value={editContent}
+                                onChange={(e) => setEditContent(e.target.value)}
+                                autoFocus
+                            />
+                            <div className="edit-actions">
+                                <button
+                                    className="save-btn"
+                                    onClick={handleSave}
+                                >
+                                    Enregistrer
+                                </button>
+                                <button
+                                    className="cancel-btn"
+                                    onClick={() => {
+                                        onCancelEdit();
+                                        setEditContent(comment.content);
+                                    }}
+                                >
+                                    Annuler
+                                </button>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="comment-text">{comment.content}</div>
+                    )}
+                </div>
 
                 <div className="comment-footer">
                     <div className="comment-meta">
@@ -428,409 +688,274 @@ const CommentItem = memo(({
                     </div>
                 </div>
             </div>
+
             <style jsx>{`
-            .comment-dropdown-menu {
-    min-width: 160px;
-    border-radius: 10px !important;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-    padding: 6px 0;
-    border: none;
-  }
-  .comment-dropdown-menu .dropdown-item {
-    font-size: 0.97rem;
-    padding: 8px 18px;
-    border-radius: 6px;
-    transition: background 0.18s, color 0.18s;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .comment-dropdown-menu .dropdown-item:active,
-  .comment-dropdown-menu .dropdown-item:hover {
-    background: #f0f2f5;
-    color: #4a6cf7;
-  }
-  .action-menu {
-    color: #888 !important;
-    background: none !important;
-    border: none !important;
-    padding: 4px !important;
-    border-radius: 50% !important;
-    transition: background 0.18s;
-  }
-  .action-menu:hover, .action-menu:focus {
-    background: #f0f2f5 !important;
-    color: #4a6cf7 !important;
-  }
-                .comment-section-container {
-    background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-    padding: 20px;
-    max-width: 600px;
-    margin: 0 auto;
-    font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-}
+                .comment-item {
+                    display: flex;
+                    margin-bottom: 16px;
+                    padding: 12px;
+                    border-radius: 12px;
+                    background: #fff;
+                    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+                    transition: all 0.2s ease;
+                    position: relative;
+                }
 
-.comment-section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-    padding-bottom: 15px;
-    border-bottom: 1px solid #f0f0f0;
-   
-}
+                .comment-content-wrapper {
+                    flex: 1;
+                    display: flex;
+                    flex-direction: column;
+                    min-width: 0; /* Empêche le débordement */
+                }
 
-.comment-section-header h5 {
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: #333;
-    margin: 0;
-}
+                .comment-content {
+                    flex: 1;
+                }
 
-.close-btn {
-    background: none;
-    border: none;
-    color: #666;
-    font-size: 1.2rem;
-    cursor: pointer;
-    transition: color 0.2s;
-    padding: 5px 8px; /* Réduit le padding horizontal */
-    margin-left: 8px;  /* Optionnel : rapproche du titre */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
+                .comment-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: flex-start;
+                    margin-bottom: 6px;
+                    position: relative;
+                }
 
-.close-btn:hover {
-    color: #333;
-}
+                .comment-author {
+                    font-weight: 600;
+                    color: #343a40;
+                    font-size: 0.95rem;
+                    flex: 1;
+                    min-width: 0;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                }
 
-.comments-list-container {
-    max-height: 500px;
-    min-height: 120px; /* Ajoute une hauteur minimale */
-    background: #fff;  /* Fond blanc même vide */
-    border-radius: 10px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.03);
-    overflow-y: auto;
-    padding-right: 10px;
-    margin-bottom: 20px;
-    transition: background 0.2s;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-}
-.no-comments {
-    text-align: center;
-    color: #666;
-    padding: 30px 0;
-    font-size: 0.95rem;
-    width: 100%;
-}
+                .comment-actions {
+                    position: relative;
+                    margin-left: 8px;
+                }
 
-/* Style de la scrollbar */
-.comments-list-container::-webkit-scrollbar {
-    width: 6px;
-}
+                .action-menu {
+                    background: none;
+                    border: none;
+                    color: #adb5bd;
+                    cursor: pointer;
+                    padding: 4px;
+                    font-size: 1rem;
+                    transition: all 0.2s;
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 28px;
+                    height: 28px;
+                }
 
-.comments-list-container::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 10px;
-}
+                .action-menu:hover {
+                    background: #f8f9fa;
+                    color: #495057;
+                }
 
-.comments-list-container::-webkit-scrollbar-thumb {
-    background: #ccc;
-    border-radius: 10px;
-}
+                .dropdown-menu {
+                    position: absolute;
+                    right: 0;
+                    top: 100%;
+                    z-index: 1000;
+                    min-width: 180px;
+                    padding: 8px 0;
+                    margin-top: 4px;
+                    font-size: 0.9rem;
+                    color: #212529;
+                    text-align: left;
+                    list-style: none;
+                    background-color: #fff;
+                    background-clip: padding-box;
+                    border: 1px solid rgba(0, 0, 0, 0.15);
+                    border-radius: 8px;
+                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                }
 
-.comments-list-container::-webkit-scrollbar-thumb:hover {
-    background: #aaa;
-}
+                .dropdown-item {
+                    display: flex;
+                    align-items: center;
+                    width: 100%;
+                    padding: 8px 16px;
+                    clear: both;
+                    font-weight: 400;
+                    color: #212529;
+                    text-align: inherit;
+                    white-space: nowrap;
+                    background-color: transparent;
+                    border: 0;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                }
 
-.loading-spinner, .loading-more {
-    display: flex;
-    justify-content: center;
-    padding: 20px 0;
-}
+                .dropdown-item:hover {
+                    background-color: #f8f9fa;
+                    color: #16181b;
+                }
 
-.spinner {
-    width: 24px;
-    height: 24px;
-    border: 3px solid rgba(0, 0, 0, 0.1);
-    border-radius: 50%;
-    border-top-color: #4a6cf7;
-    animation: spin 1s ease-in-out infinite;
-}
+                .dropdown-item .icon {
+                    margin-right: 8px;
+                    width: 16px;
+                    text-align: center;
+                }
 
-@keyframes spin {
-    to { transform: rotate(360deg); }
-}
+                /* Couleurs des icônes */
+                .dropdown-item:nth-child(1) .icon { color: #4a6cf7; }
+                .dropdown-item:nth-child(2) .icon { color: #ffc107; }
+                .dropdown-item:nth-child(3) .icon { color: #dc3545; }
+
+                .reply-mention {
+                    font-size: 0.8rem;
+                    color: #6c757d;
+                    margin-bottom: 4px;
+                    padding: 2px 8px;
+                    background: #f8f9fa;
+                    border-radius: 10px;
+                    display: inline-block;
+                }
+
+                .comment-text {
+                    font-size: 0.95rem;
+                    line-height: 1.5;
+                    color: #212529;
+                    margin-bottom: 8px;
+                    white-space: pre-wrap;
+                    word-break: break-word;
+                }
+
+                .comment-footer {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-top: 8px;
+                }
+
+                .comment-meta {
+                    font-size: 0.8rem;
+                    color: #868e96;
+                }
+
+                .comment-time {
+                    display: flex;
+                    align-items: center;
+                }
+
+                .edited {
+                    font-style: italic;
+                    margin-left: 4px;
+                }
+
+                .comment-interactions {
+                    display: flex;
+                    gap: 12px;
+                }
+
+                .like-btn, .reply-btn {
+                    background: none;
+                    border: none;
+                    color: #6c757d;
+                    cursor: pointer;
+                    font-size: 0.85rem;
+                    display: flex;
+                    align-items: center;
+                    gap: 4px;
+                    transition: all 0.2s ease;
+                    padding: 4px 8px;
+                    border-radius: 16px;
+                }
+
+                .like-btn:hover, .reply-btn:hover {
+                    background: #f8f9fa;
+                    color: #495057;
+                }
+
+                .like-btn.liked {
+                    color: #e74c3c;
+                }
+
+                .like-btn.liked:hover {
+                    background: #fee5e3;
+                }
 
 
+                .edit-form {
+                    margin-bottom: 10px;
+                }
 
-.comment-item {
-    display: flex;
-    margin-bottom: 20px;
-    padding: 15px;
-    border-radius: 10px;
-    transition: background 0.2s;
-}
+                .edit-input {
+                    width: 100%;
+                    padding: 8px 12px;
+                    border: 1px solid #ced4da;
+                    border-radius: 8px;
+                    font-size: 0.95rem;
+                    margin-bottom: 8px;
+                    transition: all 0.2s ease;
+                }
 
-.comment-item:hover {
-    background: rgba(0, 0, 0, 0.02);
-}
+                .edit-input:focus {
+                    outline: none;
+                    border-color: #4a6cf7;
+                    box-shadow: 0 0 0 3px rgba(74, 108, 247, 0.1);
+                }
 
-.comment-item.reply {
-    margin-left: 40px;
-    position: relative;
-}
+                .edit-actions {
+                    display: flex;
+                    gap: 8px;
+                }
 
-.comment-item.reply::before {
-    content: '';
-    position: absolute;
-    left: -20px;
-    top: 40px;
-    height: calc(100% - 40px);
-    width: 2px;
-    background: #e0e0e0;
-}
+                .save-btn, .cancel-btn {
+                    padding: 6px 12px;
+                    border-radius: 6px;
+                    font-size: 0.85rem;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                }
 
-.comment-avatar {
-    margin-right: 15px;
-    flex-shrink: 0;
-}
+                .save-btn {
+                    background: #4a6cf7;
+                    color: white;
+                    border: none;
+                }
 
-.comment-content {
-    flex-grow: 1;
-}
+                .save-btn:hover {
+                    background: #3a5bd9;
+                }
 
-.comment-header {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 8px;
-}
+                .cancel-btn {
+                    background: none;
+                    border: 1px solid #ced4da;
+                    color: #6c757d;
+                }
 
-.comment-author {
-    font-weight: 600;
-    color: #333;
-    font-size: 0.95rem;
-}
+                .cancel-btn:hover {
+                    background: #f8f9fa;
+                }
 
-.comment-actions {
-    position: relative;
-}
+                @media (max-width: 576px) {
+                    .comment-item {
+                        padding: 10px;
+                    }
 
-.action-menu {
-    background: none;
-    border: none;
-    color: #666;
-    cursor: pointer;
-    padding: 5px;
-    font-size: 0.9rem;
-    transition: color 0.2s;
-}
+                    .comment-item.reply {
+                        margin-left: 20px;
+                    }
 
-.action-menu:hover {
-    color: #333;
-}
+                    .comment-text {
+                        font-size: 0.9rem;
+                    }
 
-.reply-mention {
-    font-size: 0.8rem;
-    color: #666;
-    margin-bottom: 5px;
-}
+                    .comment-author {
+                        font-size: 0.9rem;
+                    }
 
-.comment-text {
-    font-size: 0.95rem;
-    line-height: 1.5;
-    color: #333;
-    margin-bottom: 10px;
-    white-space: pre-wrap;
-}
-
-.comment-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.comment-meta {
-    font-size: 0.8rem;
-    color: #999;
-}
-
-.comment-time {
-    display: flex;
-    align-items: center;
-}
-
-.edited {
-    font-style: italic;
-    margin-left: 5px;
-}
-
-.comment-interactions {
-    display: flex;
-    gap: 15px;
-}
-
-.like-btn, .reply-btn {
-    background: none;
-    border: none;
-    color: #666;
-    cursor: pointer;
-    font-size: 0.85rem;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    transition: color 0.2s;
-    padding: 0;
-}
-
-.like-btn:hover, .reply-btn:hover {
-    color: #333;
-}
-
-.like-btn.liked {
-    color: #f44336;
-}
-
-.edit-form {
-    margin-bottom: 10px;
-}
-
-.edit-input {
-    width: 100%;
-    padding: 8px 12px;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    font-size: 0.95rem;
-    margin-bottom: 8px;
-    transition: border 0.2s;
-}
-
-.edit-input:focus {
-    outline: none;
-    border-color: #4a6cf7;
-}
-
-.edit-actions {
-    display: flex;
-    gap: 10px;
-}
-
-.save-btn, .cancel-btn {
-    padding: 6px 12px;
-    border-radius: 6px;
-    font-size: 0.85rem;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.save-btn {
-    background: #4a6cf7;
-    color: white;
-    border: none;
-}
-
-.save-btn:hover {
-    background: #3a5bd9;
-}
-
-.cancel-btn {
-    background: none;
-    border: 1px solid #ddd;
-    color: #666;
-}
-
-.cancel-btn:hover {
-    background: #f5f5f5;
-}
-
-.comment-form {
-    margin-top: 20px;
-}
-
-.form-group {
-    display: flex;
-    gap: 10px;
-}
-
-.form-control {
-    flex-grow: 1;
-    padding: 12px 15px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    font-size: 0.95rem;
-    transition: border 0.2s;
-}
-
-.form-control:focus {
-    outline: none;
-    border-color: #4a6cf7;
-    box-shadow: 0 0 0 3px rgba(74, 108, 247, 0.1);
-}
-
-.submit-btn {
-    background: #4a6cf7;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    width: 46px;
-    height: 46px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: background 0.2s;
-}
-
-.submit-btn:disabled {
-    background: #ccc;
-    cursor: not-allowed;
-}
-
-.submit-btn:hover:not(:disabled) {
-    background: #3a5bd9;
-}
-
-.replying-to {
-    font-size: 0.85rem;
-    color: #666;
-    margin-top: 8px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.cancel-reply {
-    background: none;
-    border: none;
-    color: #4a6cf7;
-    font-size: 0.8rem;
-    cursor: pointer;
-    padding: 0;
-}
-
-.load-more-btn {
-    background: none;
-    border: none;
-    color: #4a6cf7;
-    font-size: 0.9rem;
-    cursor: pointer;
-    padding: 10px 0;
-    width: 100%;
-    text-align: center;
-    margin-top: 10px;
-    transition: color 0.2s;
-}
-
-.load-more-btn:hover {
-    color: #3a5bd9;
-}
+                    .comment-meta {
+                        font-size: 0.75rem;
+                    }
+                }
             `}</style>
-
         </div>
     );
 });

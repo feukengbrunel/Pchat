@@ -8,24 +8,24 @@ const Users = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   return (
     <div>
-      <div className="app bg-light min-vh-100">
-        <div className="layout d-flex flex-column flex-md-row">
+      <div className="app ">
+        <div className="layout ">
+          <Navbar onToggleSidebar={() => setIsMobileOpen(!isMobileOpen)} 
+            
+            />
           <Sidebar
             isMobileOpen={isMobileOpen}
             onToggleMobile={() => setIsMobileOpen(!isMobileOpen)}
-
+            collapsed={sidebarCollapsed}
           />
-          <Navbar onToggleSidebar={() => setIsMobileOpen(!isMobileOpen)} />
-          <div className="flex-grow-1 content-with-sidebar">
-
-            <main className="page-container py-4">
+            <main className="page-container">
               <div className=" main-content ">
 
                 <Outlet />
 
               </div>
             </main>
-          </div>
+         
         </div>
       </div>
 

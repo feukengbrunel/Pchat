@@ -177,7 +177,7 @@ const CreatePost = ({ onPost }) => {
               onClick={() => setIsExpanded(true)}
               style={{ height: '40px', cursor: 'pointer' }}
             >
-              Quoi de neuf ? {userData?.username || userData?.displayName || userData?.email || 'Utilisateur'}
+              Quoi de neuf ? {userData?.username || userData?.displayName || userData?.email ||currentUser?.username ||currentUser?.displayName || currentUser?.email || 'Utilisateur'}
             </button>
           </div>
 

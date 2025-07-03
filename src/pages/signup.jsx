@@ -6,7 +6,7 @@ import { toast } from "react-toastify";
 import logo from "../assets/images/logo/logo.png";
 import signupImage from "../assets/images/others/sign-up-2.png";
 import Footer from "../components/footer";
-import { getAuthErrorMessage } from "../utils/AuthError";
+import { getAuthErrorMessage } from "../services/getAuthErrorMessage";
 
 export function SignupPage() {
   const [formData, setFormData] = useState({
@@ -92,11 +92,12 @@ export function SignupPage() {
   return (
     <div className="min-vh-100 d-flex flex-column">
       {/* Header */}
-      <header className="py-3 px-4 bg-white border-bottom">
-        <div className="container">
-          <img src={logo} alt="Logo" style={{ height: "40px" }} />
-        </div>
-      </header>
+    {/* Header */}
+         <header className="py-3 px-4 bg-white border-none">
+      <div className="container d-flex align-items-center justify-content-center" style={{ minHeight: "100px" }}>
+        <img src={logo} alt="Logo" style={{ height: "150px", maxWidth: "100%", objectFit: "contain" }} />
+      </div>
+    </header>
 
       {/* Main Content */}
       <main className="flex-grow-1 d-flex align-items-center py-5">

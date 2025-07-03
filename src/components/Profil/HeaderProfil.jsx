@@ -5,23 +5,32 @@ import { db } from '../../firebase';
 import axios from 'axios';
 import { useAuth } from "../../hooks/useAuth";
 import Avatar from 'react-avatar';
+import Modal from 'react-bootstrap/Modal';
+import Button from 'react-bootstrap/Button';
+import Form from 'react-bootstrap/Form';
+import { ClipLoader } from 'react-spinners';
+import { InputGroup } from 'react-bootstrap';
+
 const ProfilHeader = () => {
     const [userData, setUserData] = useState({
-        displayName: 'FTB',
-        username: 'sukali',
-        profession: ' Developer, UI/UX Designer',
-        email: 'Marshall123@gmail.com',
-        phone: '+237-693049304',
-        location: 'douala, bep',
-        photoURL: 'assets/images/avatars/thumb-3.jpg',
+        displayName: '',
+        username: '',
+        profession: '',
+        email: '',
+        phone: '',
+        location: '',
+        photoURL: '',
+        bio: '',
+        specialties: [],
         socialLinks: {
-            facebook: '#',
-            twitter: '#',
-            behance: '#',
-            dribbble: '#'
+            facebook: '',
+            twitter: '',
+            behance: '',
+            dribbble: ''
         }
     });
-    const { logout, currentUser } = useAuth();
+
+    const { currentUser } = useAuth();
     const [loading, setLoading] = useState(true);
     const [uploading, setUploading] = useState(false);
     const [formData, setFormData] = useState({});
@@ -29,7 +38,7 @@ const ProfilHeader = () => {
     const [specialtiesInput, setSpecialtiesInput] = useState('');
     const auth = getAuth();
     const user = auth.currentUser;
-    const [profileComplete, setProfileComplete] = useState(false);
+
     useEffect(() => {
         const fetchUserData = async () => {
             if (user) {
@@ -38,39 +47,25 @@ const ProfilHeader = () => {
 
                 if (docSnap.exists()) {
                     const data = docSnap.data();
-                    setUserData({
+                    setUserData(prev => ({
+                        ...prev,
                         ...data,
                         socialLinks: {
-                            facebook: "#",
-                            twitter: "#",
-                            behance: "#",
-                            dribbble: "#",
-                            ...(data.socialLinks || {})
-                        }
-                    });
-                    setFormData({
-                        ...data,
-                        socialLinks: {
-                            facebook: "",
-                            twitter: "#",
-                            behance: "#",
-                            dribbble: "#",
-                            ...(data.socialLinks || {})
-                        }
-                    });
-
-                    setProfileComplete(checkProfileComplete({
-                        ...data,
-                        specialties: Array.isArray(data.specialties) ? data.specialties : [],
-                        socialLinks: {
-                            facebook: "#",
-                            twitter: "#",
-                            behance: "#",
-                            dribbble: "#",
+                            ...prev.socialLinks,
                             ...(data.socialLinks || {})
                         }
                     }));
-                    setSpecialtiesInput(Array.isArray(data.specialties) ? data.specialties.join(', ') : (data.specialties || ''));
+                    
+                    setFormData({
+                        ...data,
+                        socialLinks: {
+                            ...data.socialLinks || {}
+                        }
+                    });
+
+                    setSpecialtiesInput(Array.isArray(data.specialties) ? 
+                        data.specialties.join(', ') : 
+                        (data.specialties || ''));
                 }
                 setLoading(false);
             }
@@ -81,14 +76,27 @@ const ProfilHeader = () => {
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
-        if (name === "specialties") {
-            setFormData(prev => ({
-                ...prev,
-                specialties: value.split(',').map(s => s.trim()).filter(Boolean)
-            }));
-        } else {
-            setFormData(prev => ({ ...prev, [name]: value }));
-        }
+        setFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleSocialLinkChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            socialLinks: {
+                ...prev.socialLinks,
+                [name]: value
+            }
+        }));
+    };
+
+    const handleSpecialtiesChange = (e) => {
+        const value = e.target.value;
+        setSpecialtiesInput(value);
+        setFormData(prev => ({
+            ...prev,
+            specialties: value.split(',').map(s => s.trim()).filter(Boolean)
+        }));
     };
 
     const handleSubmit = async (e) => {
@@ -96,13 +104,10 @@ const ProfilHeader = () => {
         try {
             await updateDoc(doc(db, "users", user.uid), formData);
             setUserData(formData);
-            // Fermer la modale avec jQuery (compatible avec Bootstrap)
-            window.$('.modal').modal('hide');
+            setShowModal(false);
         } catch (error) {
             console.error("Error updating document: ", error);
         }
-        setProfileComplete(checkProfileComplete(formData));
-        setShowModal(false);
     };
 
     const handleImageUpload = async (e) => {
@@ -120,37 +125,28 @@ const ProfilHeader = () => {
                 formData
             );
 
+            const newPhotoURL = response.data.secure_url;
+            
             await updateDoc(doc(db, "users", user.uid), {
-                photoURL: response.data.secure_url
+                photoURL: newPhotoURL
             });
 
-            setUserData(prev => ({ ...prev, photoURL: response.data.secure_url }));
-            setFormData(prev => ({ ...prev, photoURL: response.data.secure_url }));
+            setUserData(prev => ({ ...prev, photoURL: newPhotoURL }));
+            setFormData(prev => ({ ...prev, photoURL: newPhotoURL }));
         } catch (error) {
             console.error('Erreur lors du téléchargement de la photo', error);
         } finally {
             setUploading(false);
         }
     };
-    function checkProfileComplete(data) {
+
+    if (loading) {
         return (
-            data.displayName &&
-            data.username &&
-            data.profession &&
-            data.email &&
-            data.phone &&
-            data.location &&
-            data.photoURL &&
-            data.bio &&
-            Array.isArray(data.specialties) && data.specialties.length > 0 &&
-            data.socialLinks &&
-            data.socialLinks.facebook &&
-            data.socialLinks.twitter &&
-            data.socialLinks.behance &&
-            data.socialLinks.dribbble
+            <div className="d-flex justify-content-center align-items-center" style={{ height: '200px' }}>
+                <ClipLoader color="#4a6cf7" size={50} />
+            </div>
         );
     }
-
 
     return (
         <>
@@ -160,18 +156,12 @@ const ProfilHeader = () => {
                         <div className="col-md-7">
                             <div className="d-md-flex align-items-center">
                                 <div className="text-center text-sm-left">
-                                    <div className="avatar avatar-image position-relative avatar-wrapper mb-3" >
-
-                                        {userData?.photoURL && userData.photoURL !== "" && userData.photoURL!=="assets/images/avatars/thumb-3.jpg"? (
+                                    <div className="avatar avatar-image position-relative avatar-wrapper mb-3">
+                                        {userData?.photoURL ? (
                                             <img
                                                 src={userData.photoURL}
                                                 alt="Profile"
                                                 className="profile-img"
-                                                style={{
-                                                    objectFit: 'cover',
-                                                    width: '100%',
-                                                    height: '100%'
-                                                }}
                                             />
                                         ) : (
                                             <Avatar
@@ -186,23 +176,16 @@ const ProfilHeader = () => {
                                 <div className="text-center text-sm-left m-v-15 p-l-30">
                                     <h2 className="m-b-5">{userData.displayName}</h2>
                                     <p className="text-opacity font-size-13">@{userData.username}</p>
-                                    <p className="text-dark m-b-20">{userData.profession} <span className={`ml-2 font-size-13 ${user ? 'text-success' : 'text-muted'}`}>
-                                        {user ? 'En ligne' : 'Hors ligne'}
-                                    </span></p>
-
+                                    <p className="text-dark m-b-20">{userData.profession}</p>
                                     <div className="d-flex gap-2">
                                         <button className="btn btn-primary btn-tone">Contact</button>
-                                        {user && (
-                                            <button
-                                                type="button"
-                                                className="btn btn-secondary btn-tone"
-                                                data-toggle="modal"
-                                                data-target="#editProfileModal"
-                                                onClick={() => setShowModal(true)}
-                                            >
-                                                Modifier
-                                            </button>
-                                        )}
+                                        <button
+                                            type="button"
+                                            className="btn btn-secondary btn-tone"
+                                            onClick={() => setShowModal(true)}
+                                        >
+                                            Modifier
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -235,18 +218,26 @@ const ProfilHeader = () => {
                                         </li>
                                     </ul>
                                     <div className="d-flex font-size-22 m-t-15">
-                                        <a href={userData.socialLinks.facebook} className="text-gray p-r-20">
-                                            <i className="anticon anticon-facebook"></i>
-                                        </a>
-                                        <a href={userData.socialLinks.twitter} className="text-gray p-r-20">
-                                            <i className="anticon anticon-twitter"></i>
-                                        </a>
-                                        <a href={userData.socialLinks.behance} className="text-gray p-r-20">
-                                            <i className="anticon anticon-behance"></i>
-                                        </a>
-                                        <a href={userData.socialLinks.dribbble} className="text-gray p-r-20">
-                                            <i className="anticon anticon-dribbble"></i>
-                                        </a>
+                                        {userData.socialLinks.facebook && (
+                                            <a href={userData.socialLinks.facebook} className="text-gray p-r-20">
+                                                <i className="anticon anticon-facebook"></i>
+                                            </a>
+                                        )}
+                                        {userData.socialLinks.twitter && (
+                                            <a href={userData.socialLinks.twitter} className="text-gray p-r-20">
+                                                <i className="anticon anticon-twitter"></i>
+                                            </a>
+                                        )}
+                                        {userData.socialLinks.behance && (
+                                            <a href={userData.socialLinks.behance} className="text-gray p-r-20">
+                                                <i className="anticon anticon-behance"></i>
+                                            </a>
+                                        )}
+                                        {userData.socialLinks.dribbble && (
+                                            <a href={userData.socialLinks.dribbble} className="text-gray p-r-20">
+                                                <i className="anticon anticon-dribbble"></i>
+                                            </a>
+                                        )}
                                     </div>
                                 </div>
                             </div>
@@ -255,276 +246,212 @@ const ProfilHeader = () => {
                 </div>
             </div>
 
-            {/* Modale Bootstrap */}
-            {showModal && (
-                <div className="modal-backdrop show"></div>
-            )}
-            <div className={`modal fade ${showModal ? 'show d-block' : ''}`} id="editProfileModal" tabIndex="-1" role="dialog">
-                <div className="modal-dialog modal-lg modal-dialog-scrollable" role="document">
-                    <div className="modal-content">
-                        <div className="modal-header">
-                            <h5 className="modal-title h4">Modifier le profil</h5>
-                            <button type="button" className="close" data-dismiss="modal" onClick={() => setShowModal(false)}>
-                                <i className="anticon anticon-close"></i>
-                            </button>
-                        </div>
-                        <div className="modal-body">
-                            <form onSubmit={handleSubmit}>
-                                <div className="form-group">
-                                    <label>Photo de profil</label>
-                                    <div className="d-flex  avatar-wrapper mb-3" style={{ height: '100px' }}>
-                                          {userData?.photoURL && userData.photoURL !== "" && userData.photoURL!=="assets/images/avatars/thumb-3.jpg"? (
-                                            <img
-                                                src={userData.photoURL}
-                                                alt="Profile"
-                                                className="profile-img"
-                                                style={{
-                                                    objectFit: 'cover',
-                                                    width: '100%',
-                                                    height: '100%'
-                                                }}
-                                            />
-                                        ) : (
-                                            <Avatar
-                                                name={userData?.username || userData?.displayName || currentUser?.displayName || currentUser?.email || "Utilisateur"}
-                                                size="140"
-                                                round
-                                                className="border"
-                                            />
-                                        )}
-                                        <div>
-                                            <input
-                                                type="file"
-                                                id="profileImage"
-                                                onChange={handleImageUpload}
-                                                className="d-none"
-                                                accept="image/*"
-
-                                            />
-                                            <label
-                                                htmlFor="profileImage"
-                                                className="btn btn-outline-primary"
-                                                disabled={uploading}
-                                            >
-                                                {uploading ? 'Téléchargement...' : 'Changer la photo'}
-                                            </label>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="form-group">
-                                    <label>Nom complet</label>
-                                    <input
-                                        type="text"
-                                        className="form-control"
-                                        name="displayName"
-                                        value={formData.displayName || ''}
-                                        onChange={handleInputChange}
-                                    />
-                                </div>
-
-                                <div className="form-group">
-                                    <label>Nom d'utilisateur</label>
-                                    <div className="input-group">
-                                        <div className="input-group-prepend">
-                                            <span className="input-group-text">@</span>
-                                        </div>
-                                        <input
-                                            type="text"
-                                            className="form-control"
-                                            name="username"
-                                            value={formData.username || ''}
-                                            onChange={handleInputChange}
+            {/* Modal React Bootstrap */}
+            <Modal show={showModal} onHide={() => setShowModal(false)} size="lg" centered>
+                <Modal.Header closeButton>
+                    <Modal.Title>Modifier le profil</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <Form onSubmit={handleSubmit}>
+                        <Form.Group className="mb-3">
+                            <Form.Label>Photo de profil</Form.Label>
+                            <div className="d-flex align-items-center mb-3">
+                                <div className="avatar-wrapper me-3">
+                                    {formData?.photoURL ? (
+                                        <img
+                                            src={formData.photoURL}
+                                            alt="Profile"
+                                            className="profile-img"
                                         />
-                                    </div>
+                                    ) : (
+                                        <Avatar
+                                            name={formData?.username || formData?.displayName || "Utilisateur"}
+                                            size="80"
+                                            round
+                                            className="border"
+                                        />
+                                    )}
                                 </div>
-
-                                <div className="form-group">
-                                    <label>Profession</label>
+                                <div>
                                     <input
-                                        type="text"
-                                        className="form-control"
-                                        name="profession"
-                                        value={formData.profession || ''}
-                                        onChange={handleInputChange}
+                                        type="file"
+                                        id="profileImage"
+                                        onChange={handleImageUpload}
+                                        className="d-none"
+                                        accept="image/*"
                                     />
-                                </div>
-
-                                <div className="form-group">
-                                    <label>Email</label>
-                                    <input
-                                        type="email"
-                                        className="form-control"
-                                        name="email"
-                                        value={formData.email || ''}
-                                        onChange={handleInputChange}
-                                    />
-                                </div>
-
-                                <div className="form-group">
-                                    <label>Téléphone</label>
-                                    <input
-                                        type="text"
-                                        className="form-control"
-                                        name="phone"
-                                        value={formData.phone || ''}
-                                        onChange={handleInputChange}
-                                    />
-                                </div>
-
-                                <div className="form-group">
-                                    <label>Localisation</label>
-                                    <input
-                                        type="text"
-                                        className="form-control"
-                                        name="location"
-                                        value={formData.location || ''}
-                                        onChange={handleInputChange}
-                                    />
-                                </div>
-                                <div className="form-group">
-                                    <label>Liens sociaux</label>
-                                    <div className="row">
-                                        <div className="col-md-6 mb-2">
-                                            <input
-                                                type="text"
-                                                className="form-control"
-                                                name="facebook"
-                                                placeholder="Lien Facebook"
-                                                value={formData.socialLinks?.facebook || ''}
-                                                onChange={e =>
-                                                    setFormData(prev => ({
-                                                        ...prev,
-                                                        socialLinks: { ...prev.socialLinks, facebook: e.target.value }
-                                                    }))
-                                                }
-                                            />
-                                        </div>
-                                        <div className="col-md-6 mb-2">
-                                            <input
-                                                type="text"
-                                                className="form-control"
-                                                name="twitter"
-                                                placeholder="Lien Twitter"
-                                                value={formData.socialLinks?.twitter || ''}
-                                                onChange={e =>
-                                                    setFormData(prev => ({
-                                                        ...prev,
-                                                        socialLinks: { ...prev.socialLinks, twitter: e.target.value }
-                                                    }))
-                                                }
-                                            />
-                                        </div>
-                                        <div className="col-md-6 mb-2">
-                                            <input
-                                                type="text"
-                                                className="form-control"
-                                                name="behance"
-                                                placeholder="Lien Behance"
-                                                value={formData.socialLinks?.behance || ''}
-                                                onChange={e =>
-                                                    setFormData(prev => ({
-                                                        ...prev,
-                                                        socialLinks: { ...prev.socialLinks, behance: e.target.value }
-                                                    }))
-                                                }
-                                            />
-                                        </div>
-                                        <div className="col-md-6 mb-2">
-                                            <input
-                                                type="text"
-                                                className="form-control"
-                                                name="dribbble"
-                                                placeholder="Lien Dribbble"
-                                                value={formData.socialLinks?.dribbble || ''}
-                                                onChange={e =>
-                                                    setFormData(prev => ({
-                                                        ...prev,
-                                                        socialLinks: { ...prev.socialLinks, dribbble: e.target.value }
-                                                    }))
-                                                }
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="form-group">
-                                    <label>Bio</label>
-                                    <textarea
-                                        className="form-control"
-                                        name="bio"
-                                        rows={3}
-                                        value={formData.bio || ''}
-                                        onChange={handleInputChange}
-                                        placeholder="Votre bio..."
-                                    />
-                                </div>
-
-                                <div className="form-group">
-                                    <label>Spécialités (séparées par une virgule)</label>
-                                    <input
-                                        type="text"
-                                        className="form-control"
-                                        name="specialties"
-                                        value={specialtiesInput}
-                                        onChange={e => {
-                                            setSpecialtiesInput(e.target.value);
-                                            setFormData(prev => ({
-                                                ...prev,
-                                                specialties: e.target.value.split(',').map(s => s.trim()).filter(Boolean)
-                                            }));
-                                        }}
-                                        placeholder="ex: React, UI/UX, Figma"
-                                    />
-                                </div>
-                                <div className="modal-footer">
-                                    <button
-                                        type="button"
-                                        className="btn btn-secondary"
-                                        data-dismiss="modal"
-                                        onClick={() => setShowModal(false)}
-                                    >
-                                        Annuler
-                                    </button>
-                                    <button
-                                        type="submit"
-                                        className="btn btn-primary"
+                                    <label
+                                        htmlFor="profileImage"
+                                        className="btn btn-outline-primary"
                                         disabled={uploading}
                                     >
-                                        Enregistrer
-                                    </button>
+                                        {uploading ? 'Téléchargement...' : 'Changer la photo'}
+                                    </label>
                                 </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                            </div>
+                        </Form.Group>
+
+                        <Form.Group className="mb-3">
+                            <Form.Label>Nom complet</Form.Label>
+                            <Form.Control
+                                type="text"
+                                name="displayName"
+                                value={formData.displayName || ''}
+                                onChange={handleInputChange}
+                            />
+                        </Form.Group>
+
+                        <Form.Group className="mb-3">
+                            <Form.Label>Nom d'utilisateur</Form.Label>
+                            <InputGroup>
+                                <InputGroup.Text>@</InputGroup.Text>
+                                <Form.Control
+                                    type="text"
+                                    name="username"
+                                    value={formData.username || ''}
+                                    onChange={handleInputChange}
+                                />
+                            </InputGroup>
+                        </Form.Group>
+
+                        <Form.Group className="mb-3">
+                            <Form.Label>Profession</Form.Label>
+                            <Form.Control
+                                type="text"
+                                name="profession"
+                                value={formData.profession || ''}
+                                onChange={handleInputChange}
+                            />
+                        </Form.Group>
+
+                        <Form.Group className="mb-3">
+                            <Form.Label>Email</Form.Label>
+                            <Form.Control
+                                type="email"
+                                name="email"
+                                value={formData.email || ''}
+                                onChange={handleInputChange}
+                            />
+                        </Form.Group>
+
+                        <Form.Group className="mb-3">
+                            <Form.Label>Téléphone</Form.Label>
+                            <Form.Control
+                                type="text"
+                                name="phone"
+                                value={formData.phone || ''}
+                                onChange={handleInputChange}
+                            />
+                        </Form.Group>
+
+                        <Form.Group className="mb-3">
+                            <Form.Label>Localisation</Form.Label>
+                            <Form.Control
+                                type="text"
+                                name="location"
+                                value={formData.location || ''}
+                                onChange={handleInputChange}
+                            />
+                        </Form.Group>
+
+                        <Form.Group className="mb-3">
+                            <Form.Label>Bio</Form.Label>
+                            <Form.Control
+                                as="textarea"
+                                rows={3}
+                                name="bio"
+                                value={formData.bio || ''}
+                                onChange={handleInputChange}
+                                placeholder="Votre bio..."
+                            />
+                        </Form.Group>
+
+                        <Form.Group className="mb-3">
+                            <Form.Label>Spécialités (séparées par une virgule)</Form.Label>
+                            <Form.Control
+                                type="text"
+                                name="specialties"
+                                value={specialtiesInput}
+                                onChange={handleSpecialtiesChange}
+                                placeholder="ex: React, UI/UX, Figma"
+                            />
+                        </Form.Group>
+
+                        <Form.Group className="mb-3">
+                            <Form.Label>Liens sociaux</Form.Label>
+                            <div className="row">
+                                <div className="col-md-6 mb-2">
+                                    <Form.Control
+                                        type="text"
+                                        placeholder="Lien Facebook"
+                                        name="facebook"
+                                        value={formData.socialLinks?.facebook || ''}
+                                        onChange={handleSocialLinkChange}
+                                    />
+                                </div>
+                                <div className="col-md-6 mb-2">
+                                    <Form.Control
+                                        type="text"
+                                        placeholder="Lien Twitter"
+                                        name="twitter"
+                                        value={formData.socialLinks?.twitter || ''}
+                                        onChange={handleSocialLinkChange}
+                                    />
+                                </div>
+                                <div className="col-md-6 mb-2">
+                                    <Form.Control
+                                        type="text"
+                                        placeholder="Lien Behance"
+                                        name="behance"
+                                        value={formData.socialLinks?.behance || ''}
+                                        onChange={handleSocialLinkChange}
+                                    />
+                                </div>
+                                <div className="col-md-6 mb-2">
+                                    <Form.Control
+                                        type="text"
+                                        placeholder="Lien Dribbble"
+                                        name="dribbble"
+                                        value={formData.socialLinks?.dribbble || ''}
+                                        onChange={handleSocialLinkChange}
+                                    />
+                                </div>
+                            </div>
+                        </Form.Group>
+
+                        <Modal.Footer>
+                            <Button variant="secondary" onClick={() => setShowModal(false)}>
+                                Annuler
+                            </Button>
+                            <Button variant="primary" type="submit" disabled={uploading}>
+                                Enregistrer
+                            </Button>
+                        </Modal.Footer>
+                    </Form>
+                </Modal.Body>
+            </Modal>
+
             <style jsx>{`
-           
+                .avatar-wrapper {
+                    position: relative;
+                    width: 140px;
+                    height: 140px;
+                    margin: 0 auto;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
 
- .avatar-wrapper {
-  position: relative;
-  width: 140px;
-  height: 140px;
-  margin: 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.profile-img {
-  width: 140px;
-  height: 140px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 3px solid #f1f1f1;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
-  background: #fafbfc;
-  display: block;
-}
-
-            .modal-backdrop.show {
-                opacity: 0.5;
-            }
+                .profile-img {
+                    width: 140px;
+                    height: 140px;
+                    border-radius: 50%;
+                    object-fit: cover;
+                    border: 3px solid #f1f1f1;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+                    background: #fafbfc;
+                    display: block;
+                }
             `}</style>
         </>
     );

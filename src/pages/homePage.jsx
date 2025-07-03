@@ -108,7 +108,7 @@ const HomePage = () => {
               <div className="row justify-content-center">
                 <div className="col-12 col-md-10 col-lg-8">
                   <div className="mb-4">
-                    <CreatePost onPost={handlePost} />
+                   <CreatePost key="create-post" onPost={handlePost} />
                   </div>
                   {loading || showSkeleton
                     ? Array.from({ length: 3 }).map((_, i) => (
