@@ -1,0 +1,24 @@
+name: Déploiement optimisé
+
+on: [push]  # Déclenché à chaque push
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest  # Machine virtuelle utilisée
+
+    steps:
+      - name: Checkout (clone shallow)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1  # Ne clone que le dernier commit
+
+      - name: Configure Git pour plus de vitesse
+        run: |
+          git config --global core.compression 0
+          git config --global http.postBuffer 1048576000
+
+      - name: Installer les dépendances
+        run: npm install  # Exemple pour Node.js
+
+      - name: Déployer
+        run: ./deploy.sh
