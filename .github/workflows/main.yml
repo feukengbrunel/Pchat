@@ -3,22 +3,21 @@ name: Déploiement optimisé
 on: [push]  # Déclenché à chaque push
 
 jobs:
-  deploy:
-    runs-on: ubuntu-latest  # Machine virtuelle utilisée
-
+  build:
+    runs-on: ubuntu-latest
+    env:
+      NODE_OPTIONS: "--max-old-space-size=4096"
+    
     steps:
-      - name: Checkout (clone shallow)
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 1  # Ne clone que le dernier commit
+      - uses: actions/checkout@v4
 
-      - name: Configure Git pour plus de vitesse
-        run: |
-          git config --global core.compression 0
-          git config --global http.postBuffer 1048576000
+      - name: Installer Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18  # Changer selon votre besoin
 
       - name: Installer les dépendances
-        run: npm install  # Exemple pour Node.js
+        run: npm ci
 
-      - name: Déployer
-        run: ./deploy.sh
+      - name: Build
+        run: npm run build
